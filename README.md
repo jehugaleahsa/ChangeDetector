@@ -11,13 +11,13 @@ ChangeDetector will take two objects of the same type and determine if they diff
     {
         public TestEntityChangeDetector()
         {
-            Add("String", e => e.StringValue, Formatters.FormatString);
-            Add("DateTime", e => e.DateTimeValue, Formatters.FormatDateTime);
-            Add("Money", e => e.MoneyValue, Formatters.FormatMoney);
-            Add("Int", e => e.IntValue, Formatters.FormatInt32);
-            Add("Boolean", e => e.BooleanValue, Formatters.FormatBoolean);
-            Add("Percent", e => e.PercentValue, Formatters.FormatPercent);
-            Add("Guid", e => e.GuidValue, Formatters.FormatGuid);
+            Add("String", x => x.StringValue, Formatters.FormatString);
+            Add("DateTime", x => x.DateTimeValue, Formatters.FormatDateTime);
+            Add("Money", x => x.MoneyValue, Formatters.FormatMoney);
+            Add("Int", x => x.IntValue, Formatters.FormatInt32);
+            Add("Boolean", x => x.BooleanValue, Formatters.FormatBoolean);
+            Add("Percent", x => x.PercentValue, Formatters.FormatPercent);
+            Add("Guid", x => x.GuidValue, Formatters.FormatGuid);
         }
     }
     
@@ -35,7 +35,7 @@ Once you have defined your change detector, you can get the list of changes for 
     
 Or, if you just need to know if a value changed:
 
-    bool hasChanged = detector.HasChange(entity1, entity2, e => e.StringValue);
+    bool hasChanged = detector.HasChange(entity1, entity2, x => x.StringValue);
 
 ## Inheritance
 If your entity can have multiple derived classes, you can specify how to detect changes whenever the entity is of that type, using the `When<TDerived>` method.
@@ -44,15 +44,15 @@ If your entity can have multiple derived classes, you can specify how to detect 
     {
         public TestEntityChangeDetector()
         {
-            Add("String", e => e.StringValue, Formatters.FormatString);
+            Add("String", x => x.StringValue, Formatters.FormatString);
         
             When<DerivedA>()
-                .Add("A1", e => e.A1, Formatters.FormatString)
-                .Add("A2", e => e.A2, Formatters.FormatString);
+                .Add("A1", x => x.A1, Formatters.FormatString)
+                .Add("A2", x => x.A2, Formatters.FormatString);
                 
             When<DerivedB>()
-                .Add("B1", e => e.B1, Formatters.FormatString)
-                .Add("B2", e => e.B2, Formatters.FormatString);
+                .Add("B1", x => x.B1, Formatters.FormatString)
+                .Add("B2", x => x.B2, Formatters.FormatString);
         }
     }
     
