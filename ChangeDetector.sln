@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChangeDetector", "ChangeDetector\ChangeDetector.csproj", "{C316DA6E-6D47-4024-A7EA-6B6614B1A7F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChangeDetector.Tests", "ChangeDetector.Tests\ChangeDetector.Tests.csproj", "{677C4396-7151-4A95-8BBB-E66AFEF2128E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C316DA6E-6D47-4024-A7EA-6B6614B1A7F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C316DA6E-6D47-4024-A7EA-6B6614B1A7F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C316DA6E-6D47-4024-A7EA-6B6614B1A7F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C316DA6E-6D47-4024-A7EA-6B6614B1A7F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{677C4396-7151-4A95-8BBB-E66AFEF2128E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{677C4396-7151-4A95-8BBB-E66AFEF2128E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{677C4396-7151-4A95-8BBB-E66AFEF2128E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{677C4396-7151-4A95-8BBB-E66AFEF2128E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
