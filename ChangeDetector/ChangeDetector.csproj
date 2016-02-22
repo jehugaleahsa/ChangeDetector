@@ -43,6 +43,7 @@
     <Compile Include="EntityConfiguration.cs" />
     <Compile Include="FieldChange.cs" />
     <Compile Include="Formatters.cs" />
+    <Compile Include="IDerivedEntityChangeDetector.cs" />
     <Compile Include="IDerivedEntityConfiguration.cs" />
     <Compile Include="IEntityChangeDetector.cs" />
     <Compile Include="IPropertyConfiguration.cs" />

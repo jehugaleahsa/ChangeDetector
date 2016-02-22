@@ -48,19 +48,19 @@ namespace ChangeDetector
             return detector;
         }
 
-        public IEntityChangeDetector<TDerived> As<TDerived>()
+        public IDerivedEntityChangeDetector<TEntity, TDerived> As<TDerived>()
             where TDerived : class, TEntity
         {
             Func<TEntity, TDerived> accessor = (TEntity e) => e as TDerived;
             IRelatedEntity relationship;
             if (!relationships.TryGetValue(typeof(TDerived), out relationship))
             {
-                return new NullChangeDetector<TDerived>();
+                return new NullDerivedChangeDetector<TEntity, TDerived>();
             }
             RelatedEntity<TDerived> entity = relationship as RelatedEntity<TDerived>;
             if (entity == null)
             {
-                return new NullChangeDetector<TDerived>();
+                return new NullDerivedChangeDetector<TEntity, TDerived>();
             }
             return entity.Detector;
         }
@@ -90,7 +90,7 @@ namespace ChangeDetector
 
         internal bool HasChange(TEntity original, TEntity updated, PropertyInfo propertyInfo)
         {
-            if (!properties.ContainsKey(propertyInfo))
+            if (propertyInfo == null || !properties.ContainsKey(propertyInfo))
             {
                 return false;
             }

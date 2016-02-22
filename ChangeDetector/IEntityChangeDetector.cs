@@ -7,7 +7,7 @@ namespace ChangeDetector
     public interface IEntityChangeDetector<TEntity>
         where TEntity : class
     {
-        IEntityChangeDetector<TDerived> As<TDerived>() where TDerived : class, TEntity;
+        IDerivedEntityChangeDetector<TEntity, TDerived> As<TDerived>() where TDerived : class, TEntity;
 
         IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated);
 

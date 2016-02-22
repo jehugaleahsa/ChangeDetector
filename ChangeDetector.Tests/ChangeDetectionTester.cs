@@ -271,6 +271,32 @@ namespace ChangeDetector.Tests
 
         [TestMethod]
         [TestCategory("Unit Test")]
+        public void ShouldSeeChangeToBasePropertyWhenBaseObject()
+        {
+            var detector = new DerivedChangeDetector();
+            TestEntity original = new DerivedEntity() { IntValue = 123 };
+            TestEntity updated = new DerivedEntity() { IntValue = 234 };
+
+            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.IntValue);
+
+            Assert.IsTrue(hasChange, "The change was not detected.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldSeeChangeToDerivedPropertyWhenBaseObject()
+        {
+            var detector = new DerivedChangeDetector();
+            TestEntity original = new DerivedEntity() { DerivedValue = 123 };
+            TestEntity updated = new DerivedEntity() { DerivedValue = 234 };
+
+            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.DerivedValue);
+
+            Assert.IsTrue(hasChange, "The change was not detected.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
         public void ShouldSeeChangeToNonDerivedProperty()
         {
             var detector = new DerivedChangeDetector();
