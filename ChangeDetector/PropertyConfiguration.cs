@@ -37,6 +37,7 @@ namespace ChangeDetector
             }
 
             FieldChange change = new FieldChange();
+            change.Property = Property;
             change.FieldName = DisplayName;
             change.OldValue = formatValue(original);
             change.NewValue = formatValue(updated);
