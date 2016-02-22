@@ -36,6 +36,14 @@ Once you have defined your change detector, you can get the list of changes for 
 Or, if you just need to know if a value changed:
 
     bool hasChanged = detector.HasChange(entity1, entity2, x => x.StringValue);
+    
+The `FieldChange` class has the following properties:
+* Property - The `System.Reflection.PropertyInfo` object for the property that change.
+* FieldName - The human-friendly name of the property passed to the `Add` method.
+* OldValue - The formatted value of the original object.
+* NewValue - The formatted value of the updated object.
+
+If you need to get at the raw values, you can use the `PropertyInfo`'s `GetValue` method, passing in the original or updated objects. Just be sure to check the type of the object and for `null`s.
 
 ## Inheritance
 If your entity can have multiple derived classes, you can specify how to detect changes whenever the entity is of that type, using the `When<TDerived>` method.
