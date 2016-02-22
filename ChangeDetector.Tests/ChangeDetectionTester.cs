@@ -176,14 +176,14 @@ namespace ChangeDetector.Tests
 
         [TestMethod]
         [TestCategory("Unit Test")]
-        [ExpectedException(typeof(ArgumentException))]
-        public void ShouldThrowExceptionIfCheckingIfUnconfiguredPropertyChanged()
+        public void ShouldReturnFalseIfCheckingIfUnconfiguredPropertyChanged()
         {
             var detector = new TestEntityChangeDetector();
             TestEntity original = new TestEntity();
             TestEntity updated = new TestEntity();
 
-            detector.HasChange(original, updated, a => a.NotConfigured);
+            bool hasChange = detector.HasChange(original, updated, a => a.NotConfigured);
+            Assert.IsFalse(hasChange, "A change should not be detected if the property is not recognized.");
         }
 
         [TestMethod]
@@ -258,6 +258,32 @@ namespace ChangeDetector.Tests
 
         [TestMethod]
         [TestCategory("Unit Test")]
+        public void ShouldSeeChangeToDerivedProperty()
+        {
+            var detector = new DerivedChangeDetector();
+            DerivedEntity original = new DerivedEntity() { DerivedValue = 123 };
+            DerivedEntity updated = new DerivedEntity() { DerivedValue = 234 };
+
+            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.DerivedValue);
+
+            Assert.IsTrue(hasChange, "The change was not detected.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldSeeChangeToNonDerivedProperty()
+        {
+            var detector = new DerivedChangeDetector();
+            DerivedEntity original = new DerivedEntity() { IntValue = 123 };
+            DerivedEntity updated = new DerivedEntity() { IntValue = 234 };
+
+            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.IntValue);
+
+            Assert.IsTrue(hasChange, "The change was not detected.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
         public void ShouldDetectChangeToDerivedProperty_OriginalNull()
         {
             var detector = new DerivedChangeDetector();
@@ -271,6 +297,39 @@ namespace ChangeDetector.Tests
             Assert.AreEqual(DerivedChangeDetector.DerivedDescription, change.FieldName, "The wrong field was recorded.");
             Assert.AreEqual(null, change.OldValue, "The old value was not recorded.");
             Assert.AreEqual(Formatters.FormatInt32(updated.DerivedValue), change.NewValue, "The new value was not recorded.");
+        }
+
+        public class DoubleDerivedEntity : DerivedEntity
+        {
+            public string DoubleDerivedValue { get; set; }
+        }
+
+        public class DoubleDerivedChangeDetector : DerivedChangeDetector
+        {
+            public const string DoubleDerivedDescription = "DoubleDerived";
+
+            public DoubleDerivedChangeDetector()
+            {
+                When<DoubleDerivedEntity>()
+                    .Add(DoubleDerivedDescription, x => x.DoubleDerivedValue, Formatters.FormatString);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldIncludeChangeToDoubleDerivedProperty()
+        {
+            var detector = new DoubleDerivedChangeDetector();
+            DoubleDerivedEntity original = new DoubleDerivedEntity() { DoubleDerivedValue = "John" };
+            DoubleDerivedEntity updated = new DoubleDerivedEntity() { DoubleDerivedValue = "Tom" };
+
+            var changes = detector.GetChanges(original, updated);
+
+            Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
+            FieldChange change = changes.Single();
+            Assert.AreEqual(DoubleDerivedChangeDetector.DoubleDerivedDescription, change.FieldName, "The wrong field was recorded.");
+            Assert.AreEqual(Formatters.FormatString(original.DoubleDerivedValue), change.OldValue, "The old value was not recorded.");
+            Assert.AreEqual(Formatters.FormatString(updated.DoubleDerivedValue), change.NewValue, "The new value was not recorded.");
         }
     }
 }

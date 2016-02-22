@@ -6,19 +6,19 @@ using System.Reflection;
 
 namespace ChangeDetector
 {
-    public class EntityConfiguration<TEntity> : IEntityChangeDetector<TEntity>, IDerivedEntityConfiguration<TEntity>
+    public class EntityConfiguration<TEntity> : IEntityChangeDetector<TEntity>
         where TEntity : class
     {
         private readonly Dictionary<PropertyInfo, IPropertyConfiguration<TEntity>> properties;
-        private readonly Dictionary<object, IRelatedEntity> relationships;
+        private readonly Dictionary<Type, IRelatedEntity> relationships;
 
         public EntityConfiguration()
         {
             properties = new Dictionary<PropertyInfo, IPropertyConfiguration<TEntity>>();
-            relationships = new Dictionary<object, IRelatedEntity>();
+            relationships = new Dictionary<Type, IRelatedEntity>();
         }
 
-        protected EntityConfiguration<TEntity> Add<TProp>(string displayName, Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter)
+        protected internal EntityConfiguration<TEntity> Add<TProp>(string displayName, Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter)
         {
             if (String.IsNullOrWhiteSpace(displayName))
             {
@@ -32,25 +32,37 @@ namespace ChangeDetector
             {
                 throw new ArgumentNullException("formatter", "The property formatter cannot be null.");
             }
-            var propertyInfo = getProperty(accessor);
+            var propertyInfo = GetProperty(accessor);
             var property = new PropertyConfiguration<TEntity, TProp>(displayName, propertyInfo, accessor, formatter);
             properties[propertyInfo] = property;
             return this;
         }
 
-        IDerivedEntityConfiguration<TEntity> IDerivedEntityConfiguration<TEntity>.Add<TProp>(string displayName, Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter)
-        {
-            return Add(displayName, accessor, formatter);
-        }
-
         protected IDerivedEntityConfiguration<TDerived> When<TDerived>()
             where TDerived : class, TEntity
         {
-            EntityConfiguration<TDerived> detector = new EntityConfiguration<TDerived>();
+            var detector = new DerivedEntityConfiguration<TEntity, TDerived>(this);
             Func<TEntity, TDerived> accessor = (TEntity e) => e as TDerived;
             IRelatedEntity relationship = new RelatedEntity<TDerived>(detector, accessor);
-            relationships[accessor] = relationship;
+            relationships[typeof(TDerived)] = relationship;
             return detector;
+        }
+
+        public IEntityChangeDetector<TDerived> As<TDerived>()
+            where TDerived : class, TEntity
+        {
+            Func<TEntity, TDerived> accessor = (TEntity e) => e as TDerived;
+            IRelatedEntity relationship;
+            if (!relationships.TryGetValue(typeof(TDerived), out relationship))
+            {
+                return new NullChangeDetector<TDerived>();
+            }
+            RelatedEntity<TDerived> entity = relationship as RelatedEntity<TDerived>;
+            if (entity == null)
+            {
+                return new NullChangeDetector<TDerived>();
+            }
+            return entity.Detector;
         }
 
         public IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated)
@@ -72,17 +84,22 @@ namespace ChangeDetector
 
         public bool HasChange<TProp>(TEntity original, TEntity updated, Expression<Func<TEntity, TProp>> accessor)
         {
-            PropertyInfo propertyInfo = getProperty<TProp>(accessor);
+            PropertyInfo propertyInfo = GetProperty<TProp>(accessor);
+            return HasChange(original, updated, propertyInfo);
+        }
+
+        internal bool HasChange(TEntity original, TEntity updated, PropertyInfo propertyInfo)
+        {
             if (!properties.ContainsKey(propertyInfo))
             {
-                throw new ArgumentException("The accessor refers to an unconfigured property.", "accessor");
+                return false;
             }
             var propertyDetector = properties[propertyInfo];
             FieldChange change = propertyDetector.GetChange(original, updated);
             return change != null;
         }
 
-        private static PropertyInfo getProperty<TProp>(Expression<Func<TEntity, TProp>> accessor)
+        internal static PropertyInfo GetProperty<TProp>(Expression<Func<TEntity, TProp>> accessor)
         {
             if (accessor == null)
             {
@@ -103,22 +120,23 @@ namespace ChangeDetector
         }
 
         private class RelatedEntity<TRelation> : IRelatedEntity
-            where TRelation : class
+            where TRelation : class, TEntity
         {
-            private readonly IEntityChangeDetector<TRelation> detector;
             private readonly Func<TEntity, TRelation> accessor;
 
-            public RelatedEntity(IEntityChangeDetector<TRelation> detector, Func<TEntity, TRelation> accessor)
+            public RelatedEntity(DerivedEntityConfiguration<TEntity, TRelation> detector, Func<TEntity, TRelation> accessor)
             {
-                this.detector = detector;
+                this.Detector = detector;
                 this.accessor = accessor;
             }
+
+            public DerivedEntityConfiguration<TEntity, TRelation> Detector { get; private set; }
 
             public IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated)
             {
                 TRelation originalRelation = getRelation(original);
                 TRelation updatedRelation = getRelation(updated);
-                return detector.GetChanges(originalRelation, updatedRelation);
+                return Detector.GetDerivedChanges(originalRelation, updatedRelation);
             }
 
             private TRelation getRelation(TEntity original)
