@@ -58,6 +58,8 @@ If your entity can have multiple derived classes, you can specify how to detect 
     
 You can chain as many properties after calling `When` as you need.
 
+If you need to detect whether a property changed for a particular derived class, you can use the `As<Derived>` method. This will expose two overloads of the `HasChange` method, either taking two base class objects or two derived class objects. In the overload accepting the base class, `HasChange` will return false if either object is not an instance of the derived class. 
+
 ## Nulls
 The change detector is smart enough to handle `null`s on your behalf. If one of the entities are `null`, the value of the other entity is compared to `null`. If both entities are `null`, they are considered the same. Be aware that `null`s will not be passed to the formatter, so you can't customize their format. However, you can simply check the `OldValue` and `NewValue` for `null` and replace them with placeholder strings.
 
