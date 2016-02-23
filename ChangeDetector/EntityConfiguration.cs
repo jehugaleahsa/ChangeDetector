@@ -82,6 +82,18 @@ namespace ChangeDetector
             return propertyChanges.Concat(relatedChanges).ToArray();
         }
 
+        internal IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
+        {
+            var propertyChanges = from property in properties.Values.Cast<IPropertyExtractor<TEntity>>()
+                                  let change = property.GetChange(original, updated)
+                                  where change != null
+                                  select change;
+            var relatedChanges = from relationship in relationships.Values
+                                 from change in relationship.GetChanges(original, updated)
+                                 select change;
+            return propertyChanges.Concat(relatedChanges).ToArray();
+        }
+
         public bool HasChange<TProp>(TEntity original, TEntity updated, Expression<Func<TEntity, TProp>> accessor)
         {
             PropertyInfo propertyInfo = GetProperty<TProp>(accessor);
@@ -117,6 +129,10 @@ namespace ChangeDetector
         private interface IRelatedEntity
         {
             IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated);
+
+            IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated);
+
+            IEnumerable<IPropertyExtractor<TEntity>> GetPropertyConfigurations();
         }
 
         private class RelatedEntity<TRelation> : IRelatedEntity
@@ -143,6 +159,25 @@ namespace ChangeDetector
             {
                 return Object.Equals(original, null) ? null : this.accessor(original);
             }
+
+            public IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
+            {
+                return Detector.GetDerivedChanges(original, updated);
+            }
+
+            public IEnumerable<IPropertyExtractor<TEntity>> GetPropertyConfigurations()
+            {
+                return Detector.GetPropertyConfigurations();
+            }
+        }
+
+        internal IEnumerable<IPropertyExtractor<TEntity>> GetPropertyConfigurations()
+        {
+            var propertyConfigurations = properties.Values.Cast<IPropertyExtractor<TEntity>>();
+            var relatedConfigurations = from relationship in relationships.Values
+                                        from configuration in relationship.GetPropertyConfigurations()
+                                        select configuration;
+            return propertyConfigurations.Concat(relatedConfigurations).ToArray();
         }
     }
 }

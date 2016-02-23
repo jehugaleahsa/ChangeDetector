@@ -40,7 +40,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DerivedEntityConfiguration.cs" />
+    <Compile Include="Entity.cs" />
+    <Compile Include="EntityChange.cs" />
+    <Compile Include="EntityChangeTracker.cs" />
     <Compile Include="EntityConfiguration.cs" />
+    <Compile Include="EntityState.cs" />
     <Compile Include="FieldChange.cs" />
     <Compile Include="Formatters.cs" />
     <Compile Include="IDerivedEntityChangeDetector.cs" />
