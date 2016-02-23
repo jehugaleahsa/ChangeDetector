@@ -24,12 +24,14 @@ namespace ChangeDetector
             string displayName, 
             PropertyInfo propertyInfo,
             Expression<Func<TEntity, TProp>> accessor, 
-            Func<TProp, string> formatter)
+            Func<TProp, string> formatter,
+            IEqualityComparer<TProp> comparer)
         {
             DisplayName = displayName;
             Property = propertyInfo;
             Accessor = accessor.Compile();
             Formatter = formatter;
+            Comparer = comparer;
         }
 
         public string DisplayName { get; private set; }
@@ -40,11 +42,13 @@ namespace ChangeDetector
 
         public Func<TProp, string> Formatter { get; private set; }
 
+        public IEqualityComparer<TProp> Comparer { get; private set; }
+
         public FieldChange GetChange(TEntity original, TEntity updated)
         {
             TProp firstValue = getValue(original);
             TProp secondValue = getValue(updated);
-            if (Object.Equals(firstValue, secondValue))
+            if (Comparer.Equals(firstValue, secondValue))
             {
                 return null;
             }
@@ -81,7 +85,7 @@ namespace ChangeDetector
         {
             TProp firstValue = getValue(original);
             TProp secondValue = getValue(updated);
-            if (Object.Equals(firstValue, secondValue))
+            if (Comparer.Equals(firstValue, secondValue))
             {
                 return null;
             }

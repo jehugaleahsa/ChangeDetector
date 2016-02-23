@@ -9,8 +9,6 @@ namespace ChangeDetector
     public class EntityChange<TEntity>
         where TEntity : class
     {
-        private readonly IEntityChangeDetector<TEntity> configuration;
-
         public TEntity Entity { get; internal set; }
 
         public EntityState State { get; internal set; }

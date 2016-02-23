@@ -20,6 +20,11 @@ namespace ChangeDetector
 
         protected internal EntityConfiguration<TEntity> Add<TProp>(string displayName, Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter)
         {
+            return Add<TProp>(displayName, accessor, formatter, null);
+        }
+
+        protected internal EntityConfiguration<TEntity> Add<TProp>(string displayName, Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+        {
             if (String.IsNullOrWhiteSpace(displayName))
             {
                 throw new ArgumentException("The property display name cannot be blank.", "displayName");
@@ -32,8 +37,12 @@ namespace ChangeDetector
             {
                 throw new ArgumentNullException("formatter", "The property formatter cannot be null.");
             }
+            if (comparer == null)
+            {
+                comparer = EqualityComparer<TProp>.Default;
+            }
             var propertyInfo = GetProperty(accessor);
-            var property = new PropertyConfiguration<TEntity, TProp>(displayName, propertyInfo, accessor, formatter);
+            var property = new PropertyConfiguration<TEntity, TProp>(displayName, propertyInfo, accessor, formatter, comparer);
             properties[propertyInfo] = property;
             return this;
         }
