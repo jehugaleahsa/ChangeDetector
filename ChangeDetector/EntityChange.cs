@@ -13,7 +13,7 @@ namespace ChangeDetector
 
         public EntityState State { get; internal set; }
 
-        public IEnumerable<FieldChange> FieldChanges { get; internal set; }
+        public IEnumerable<IFieldChange> FieldChanges { get; internal set; }
 
         public bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
         {

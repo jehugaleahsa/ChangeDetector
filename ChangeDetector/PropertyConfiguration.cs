@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ChangeDetector
@@ -24,8 +23,6 @@ namespace ChangeDetector
 
         public PropertyInfo Property { get; private set; }
 
-        private Expression<Func<TEntity, TProp>> Accessor { get; set; }
-
         public Func<TProp, string> Formatter { get; private set; }
 
         public IEqualityComparer<TProp> Comparer { get; private set; }
@@ -42,7 +39,7 @@ namespace ChangeDetector
 
         public bool IsValueSource(TEntity entity)
         {
-            return Property.DeclaringType.IsAssignableFrom(entity.GetType());
+            return entity != null && Property.DeclaringType.IsAssignableFrom(entity.GetType());
         }
 
         public object GetValue(TEntity entity)
@@ -50,48 +47,53 @@ namespace ChangeDetector
             return Property.GetValue(entity);
         }
 
-        public FieldChange GetChange(TEntity original, TEntity updated)
+        public IFieldChange GetChange(TEntity original, TEntity updated)
         {
-            Dictionary<PropertyInfo, object> originalSnapshot = getValue(original);
-            Dictionary<PropertyInfo, object> updatedSnapshot = getValue(updated);
+            var originalSnapshot = getSingletonSnapshot(original);
+            var updatedSnapshot = getSingletonSnapshot(updated);
             return GetChange(originalSnapshot, updatedSnapshot);
         }
 
-        private Dictionary<PropertyInfo, object> getValue(TEntity entity)
+        private Snapshot getSingletonSnapshot(TEntity entity)
         {
-            var snapshot = new Dictionary<PropertyInfo, object>();
-            if (entity != null)
+            if (entity == null)
             {
-                snapshot.Add(Property, (TProp)Property.GetValue(entity));
+                return Snapshot.Null;
+            }
+            var snapshot = new Snapshot();
+            if (IsValueSource(entity))
+            {
+                snapshot.Add(Property, GetValue(entity));
             }
             return snapshot;
         }
 
-        public FieldChange GetChange(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
+        public IFieldChange GetChange(Snapshot original, Snapshot updated)
         {
-            TProp firstValue = getValue(original);
-            TProp secondValue = getValue(updated);
+            // If both snapshots represent null entities, then there is not a change.
+            if (original.IsNull() && updated.IsNull())
+            {
+                return null;
+            }
+            // If the snapshot represents a null entity, we say it has a value for the property.
+            // If the property is not in either lookup, it means we're looking at a base class.
+            // If the property is only in one lookup, it means we comparing different classes in a hierarchy.
+            bool hasOriginal = original.HasValue(Property);
+            bool hasUpdated = updated.HasValue(Property);
+            if (hasOriginal != hasUpdated)
+            {
+                return null;
+            }
+
+            TProp firstValue = original.GetValue<TProp>(Property);
+            TProp secondValue = updated.GetValue<TProp>(Property);
             if (Comparer.Equals(firstValue, secondValue))
             {
                 return null;
             }
 
-            FieldChange change = new FieldChange();
-            change.Property = Property;
-            change.FieldName = DisplayName;
-            change.OldValue = formatValue(original);
-            change.NewValue = formatValue(updated);
+            IFieldChange change = new FieldChange<TEntity, TProp>(this, firstValue, secondValue);
             return change;
-        }
-
-        private TProp getValue(Dictionary<PropertyInfo, object> entity)
-        {
-            return entity.ContainsKey(Property) ? (TProp)entity[Property] : default(TProp);
-        }
-
-        private string formatValue(Dictionary<PropertyInfo, object> entity)
-        {
-            return entity.ContainsKey(Property) ? Formatter((TProp)entity[Property]) : null;
         }
     }
 }

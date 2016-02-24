@@ -9,7 +9,7 @@ namespace ChangeDetector
     {
         IDerivedEntityChangeDetector<TEntity, TDerived> As<TDerived>() where TDerived : class, TEntity;
 
-        IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated);
+        IEnumerable<IFieldChange> GetChanges(TEntity original, TEntity updated);
 
         bool HasChange<TProp>(TEntity original, TEntity updated, Expression<Func<TEntity, TProp>> accessor);
     }

@@ -7,9 +7,9 @@ namespace ChangeDetector
     internal class NullChangeDetector<TEntity> : IEntityChangeDetector<TEntity>
         where TEntity : class
     {
-        public IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated)
+        public IEnumerable<IFieldChange> GetChanges(TEntity original, TEntity updated)
         {
-            return new FieldChange[0];
+            return new IFieldChange[0];
         }
 
         public bool HasChange<TProp>(TEntity original, TEntity updated, Expression<Func<TEntity, TProp>> accessor)
@@ -37,9 +37,9 @@ namespace ChangeDetector
             return new NullDerivedChangeDetector<TDerived, TSuccessor>();
         }
 
-        public IEnumerable<FieldChange> GetChanges(TDerived original, TDerived updated)
+        public IEnumerable<IFieldChange> GetChanges(TDerived original, TDerived updated)
         {
-            return new FieldChange[0];
+            return new IFieldChange[0];
         }
 
         public bool HasChange<TProp>(TDerived original, TDerived updated, Expression<Func<TDerived, TProp>> accessor)

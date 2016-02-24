@@ -30,12 +30,12 @@ namespace ChangeDetector
             return derivedConfiguration.As<TSuccessor>();
         }
 
-        public IEnumerable<FieldChange> GetChanges(TDerived original, TDerived updated)
+        public IEnumerable<IFieldChange> GetChanges(TDerived original, TDerived updated)
         {
             return baseConfiguration.GetChanges(original, updated).Concat(derivedConfiguration.GetChanges(original, updated)).ToArray();
         }
 
-        public IEnumerable<FieldChange> GetDerivedChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
+        public IEnumerable<IFieldChange> GetDerivedChanges(Snapshot original, Snapshot updated)
         {
             return derivedConfiguration.GetChanges(original, updated);
         }

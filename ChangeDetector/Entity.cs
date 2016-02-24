@@ -11,6 +11,6 @@ namespace ChangeDetector
 
         public EntityState State { get; set; }
 
-        public Dictionary<PropertyInfo, object> Snapshot { get; set; }
+        public Snapshot Snapshot { get; set; }
     }
 }

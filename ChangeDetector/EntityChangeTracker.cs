@@ -190,7 +190,7 @@ namespace ChangeDetector
                 EntityChange<TEntity> change = new EntityChange<TEntity>();
                 change.Entity = entity;
                 change.State = EntityState.Detached;
-                change.FieldChanges = new FieldChange[0];
+                change.FieldChanges = new IFieldChange[0];
                 return change;
             }
         }
@@ -205,16 +205,16 @@ namespace ChangeDetector
             return change;
         }
 
-        private IEnumerable<FieldChange> getFieldChanges(Entity<TEntity> context)
+        private IEnumerable<IFieldChange> getFieldChanges(Entity<TEntity> context)
         {
             if (context.State == EntityState.Added)
             {
                 var snapshot = configuration.TakeSnapshot(context.Instance);
-                return configuration.GetChanges(new Dictionary<PropertyInfo, object>(), snapshot);
+                return configuration.GetChanges(Snapshot.Null, snapshot);
             }
             else if (context.State == EntityState.Removed)
             {
-                return configuration.GetChanges(context.Snapshot, new Dictionary<PropertyInfo, object>());
+                return configuration.GetChanges(context.Snapshot, Snapshot.Null);
             }
             else if (context.State == EntityState.Unmodified)
             {
@@ -224,7 +224,7 @@ namespace ChangeDetector
             }
             else
             {
-                return new FieldChange[0];
+                return new IFieldChange[0];
             }
         }
 
@@ -288,7 +288,7 @@ namespace ChangeDetector
             }
         }
 
-        private static EntityState getState(EntityState entityState, IEnumerable<FieldChange> fieldChanges)
+        private static EntityState getState(EntityState entityState, IEnumerable<IFieldChange> fieldChanges)
         {
             if (entityState == EntityState.Added)
             {

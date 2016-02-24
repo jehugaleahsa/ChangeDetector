@@ -51,8 +51,7 @@ namespace ChangeDetector
             where TDerived : class, TEntity
         {
             var detector = new DerivedEntityConfiguration<TEntity, TDerived>(this);
-            Func<TEntity, TDerived> accessor = (TEntity e) => e as TDerived;
-            IRelatedEntity relationship = new RelatedEntity<TDerived>(detector, accessor);
+            IRelatedEntity relationship = new RelatedEntity<TDerived>(detector);
             relationships[typeof(TDerived)] = relationship;
             return detector;
         }
@@ -74,14 +73,14 @@ namespace ChangeDetector
             return entity.Detector;
         }
 
-        public IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated)
+        public IEnumerable<IFieldChange> GetChanges(TEntity original, TEntity updated)
         {
             var originalSnapshot = TakeSnapshot(original);
             var updatedSnapshot = TakeSnapshot(updated);
             return GetChanges(originalSnapshot, updatedSnapshot);
         }
 
-        internal IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
+        internal IEnumerable<IFieldChange> GetChanges(Snapshot original, Snapshot updated)
         {
             var propertyChanges = from property in properties.Values
                                   let change = property.GetChange(original, updated)
@@ -106,7 +105,7 @@ namespace ChangeDetector
                 return false;
             }
             var propertyDetector = properties[propertyInfo];
-            FieldChange change = propertyDetector.GetChange(original, updated);
+            IFieldChange change = propertyDetector.GetChange(original, updated);
             return change != null;
         }
 
@@ -127,7 +126,7 @@ namespace ChangeDetector
 
         private interface IRelatedEntity
         {
-            IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated);
+            IEnumerable<IFieldChange> GetChanges(Snapshot original, Snapshot updated);
 
             IEnumerable<IPropertyConfiguration<TEntity>> GetPropertyConfigurations();
         }
@@ -135,22 +134,14 @@ namespace ChangeDetector
         private class RelatedEntity<TRelation> : IRelatedEntity
             where TRelation : class, TEntity
         {
-            private readonly Func<TEntity, TRelation> accessor;
-
-            public RelatedEntity(DerivedEntityConfiguration<TEntity, TRelation> detector, Func<TEntity, TRelation> accessor)
+            public RelatedEntity(DerivedEntityConfiguration<TEntity, TRelation> detector)
             {
                 this.Detector = detector;
-                this.accessor = accessor;
             }
 
             public DerivedEntityConfiguration<TEntity, TRelation> Detector { get; private set; }
 
-            private TRelation getRelation(TEntity original)
-            {
-                return original == null ? null : this.accessor(original);
-            }
-
-            public IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
+            public IEnumerable<IFieldChange> GetChanges(Snapshot original, Snapshot updated)
             {
                 return Detector.GetDerivedChanges(original, updated);
             }
@@ -161,20 +152,21 @@ namespace ChangeDetector
             }
         }
 
-        internal Dictionary<PropertyInfo, object> TakeSnapshot(TEntity entity)
+        internal Snapshot TakeSnapshot(TEntity entity)
         {
             if (entity == null)
             {
-                return new Dictionary<PropertyInfo, object>();
+                return Snapshot.Null;
             }
-            var pairs = from configuration in GetPropertyConfigurations()
-                        where configuration.IsValueSource(entity)
-                        select new
-                        {
-                            Property = configuration.Property,
-                            Value = configuration.GetValue(entity)
-                        };
-            return pairs.ToDictionary(p => p.Property, p => p.Value);
+            Snapshot snapshot = new Snapshot();
+            foreach (var configuration in GetPropertyConfigurations())
+            {
+                if (configuration.IsValueSource(entity))
+                {
+                    snapshot.Add(configuration.Property, configuration.GetValue(entity));
+                }
+            }
+            return snapshot;
         }
 
         internal IEnumerable<IPropertyConfiguration<TEntity>> GetPropertyConfigurations()
