@@ -19,15 +19,15 @@ namespace ChangeDetector
         string FormatUpdatedValue();
     }
 
-    [DebuggerDisplay("{FieldName,nq}: {OriginalValue,nq} -> {UpdatedValue,nq}")]
+    [DebuggerDisplay("{FieldName,nq}: {FormatOriginalValue(),nq} -> {FormatUpdatedValue(),nq}")]
     internal class FieldChange<TEntity, TProp> : IFieldChange
         where TEntity : class
     {
         private readonly PropertyConfiguration<TEntity, TProp> configuration;
-        private readonly TProp original;
-        private readonly TProp updated;
+        private readonly SnapshotValue original;
+        private readonly SnapshotValue updated;
 
-        public FieldChange(PropertyConfiguration<TEntity, TProp> configuration, TProp original, TProp updated)
+        public FieldChange(PropertyConfiguration<TEntity, TProp> configuration, SnapshotValue original, SnapshotValue updated)
         {
             this.configuration = configuration;
             this.original = original;
@@ -44,14 +44,14 @@ namespace ChangeDetector
             get { return configuration.DisplayName; }
         }
 
-        object IFieldChange.OriginalValue
+        public object OriginalValue
         {
-            get { return original; }
+            get { return original.GetValue<object>(); }
         }
 
-        object IFieldChange.UpdatedValue
+        public object UpdatedValue
         {
-            get { return updated; }
+            get { return updated.GetValue<object>(); }
         }
 
         public string FormatOriginalValue()
@@ -64,9 +64,9 @@ namespace ChangeDetector
             return formatValue(updated);
         }
 
-        private string formatValue(TProp value)
+        private string formatValue(SnapshotValue value)
         {
-            return configuration.Formatter(value);
+            return value.HasValue() ? configuration.Formatter(value.GetValue<TProp>()) : null;
         }
     }
 }

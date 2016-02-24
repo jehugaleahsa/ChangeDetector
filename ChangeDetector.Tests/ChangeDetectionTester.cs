@@ -223,22 +223,6 @@ namespace ChangeDetector.Tests
             detector.HasChange(original, updated, e => e.Field);
         }
 
-        public class DerivedEntity : TestEntity
-        {
-            public int? DerivedValue { get; set; }
-        }
-
-        public class DerivedChangeDetector : TestEntityChangeDetector
-        {
-            public const string DerivedDescription = "Derived";
-
-            public DerivedChangeDetector()
-            {
-                When<DerivedEntity>()
-                    .Add(DerivedDescription, e => e.DerivedValue, Formatters.FormatInt32);
-            }
-        }
-
         [TestMethod]
         [TestCategory("Unit Test")]
         public void ShouldIncludeChangeToDerivedProperty()
@@ -325,19 +309,19 @@ namespace ChangeDetector.Tests
             Assert.AreEqual(Formatters.FormatInt32(updated.DerivedValue), change.FormatUpdatedValue(), "The new value was not recorded.");
         }
 
-        public class DoubleDerivedEntity : DerivedEntity
+        public class DerivedEntity : TestEntity
         {
-            public string DoubleDerivedValue { get; set; }
+            public int? DerivedValue { get; set; }
         }
 
-        public class DoubleDerivedChangeDetector : DerivedChangeDetector
+        public class DerivedChangeDetector : TestEntityChangeDetector
         {
-            public const string DoubleDerivedDescription = "DoubleDerived";
+            public const string DerivedDescription = "Derived";
 
-            public DoubleDerivedChangeDetector()
+            public DerivedChangeDetector()
             {
-                When<DoubleDerivedEntity>()
-                    .Add(DoubleDerivedDescription, x => x.DoubleDerivedValue, Formatters.FormatString);
+                When<DerivedEntity>()
+                    .Add(DerivedDescription, e => e.DerivedValue, Formatters.FormatInt32);
             }
         }
 
@@ -356,6 +340,22 @@ namespace ChangeDetector.Tests
             Assert.AreEqual(DoubleDerivedChangeDetector.DoubleDerivedDescription, change.FieldName, "The wrong field was recorded.");
             Assert.AreEqual(Formatters.FormatString(original.DoubleDerivedValue), change.FormatOriginalValue(), "The old value was not recorded.");
             Assert.AreEqual(Formatters.FormatString(updated.DoubleDerivedValue), change.FormatUpdatedValue(), "The new value was not recorded.");
+        }
+
+        public class DoubleDerivedEntity : DerivedEntity
+        {
+            public string DoubleDerivedValue { get; set; }
+        }
+
+        public class DoubleDerivedChangeDetector : DerivedChangeDetector
+        {
+            public const string DoubleDerivedDescription = "DoubleDerived";
+
+            public DoubleDerivedChangeDetector()
+            {
+                When<DoubleDerivedEntity>()
+                    .Add(DoubleDerivedDescription, x => x.DoubleDerivedValue, Formatters.FormatString);
+            }
         }
     }
 }

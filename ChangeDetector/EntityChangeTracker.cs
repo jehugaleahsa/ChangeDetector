@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace ChangeDetector
 {
@@ -13,7 +12,7 @@ namespace ChangeDetector
 
         public EntityChangeTracker(EntityConfiguration<TEntity> configuration)
             : this(configuration, null)
-        {            
+        {
         }
 
         public EntityChangeTracker(EntityConfiguration<TEntity> configuration, IEqualityComparer<TEntity> comparer)

@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ChangeDetector.Tests
 {
     [TestClass]
-    public class EntityChangeTrackerTester
+    public class ChangeTrackingTester
     {
         [TestMethod]
         [TestCategory("Unit Test")]
@@ -161,6 +161,150 @@ namespace ChangeDetector.Tests
                 Add(BooleanDescription, e => e.BooleanValue, Formatters.FormatBoolean);
                 Add(PercentDescription, e => e.PercentValue, Formatters.FormatPercent);
                 Add(GuidDescription, e => e.GuidValue, Formatters.FormatGuid);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldIncludeChangeToDerivedProperty()
+        {
+            var detector = new DerivedChangeDetector();
+            var tracker = new EntityChangeTracker<TestEntity>(detector);
+            DerivedEntity entity = new DerivedEntity() { DerivedValue = 123 };
+            tracker.Attach(entity);
+
+            entity.DerivedValue = 234;
+
+            var changes = tracker.DetectChanges();
+
+            Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
+            EntityChange<TestEntity> change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
+            Assert.AreEqual(EntityState.Modified, change.State, "The entity should have been modified.");
+
+            Assert.AreEqual(1, change.FieldChanges.Count(), "The wrong number of fields were seen as changed.");
+            var fieldChange = change.FieldChanges.Single();
+            Assert.AreEqual(DerivedChangeDetector.DerivedDescription, fieldChange.FieldName, "The wrong field was recorded.");
+
+            bool hasChange = change.As<DerivedEntity>().HasChange(x => x.DerivedValue);
+            Assert.IsTrue(hasChange, "The change was not detected.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldSeeChangeToBasePropertyWhenBaseObject()
+        {
+            var detector = new DerivedChangeDetector();
+            var tracker = new EntityChangeTracker<TestEntity>(detector);
+            DerivedEntity entity = new DerivedEntity() { IntValue = 123 };
+            tracker.Attach(entity);
+
+            entity.IntValue = 234;
+
+            var changes = tracker.DetectChanges();
+
+            Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
+            EntityChange<TestEntity> change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
+            Assert.AreEqual(EntityState.Modified, change.State, "The entity should have been modified.");
+
+            Assert.AreEqual(1, change.FieldChanges.Count(), "The wrong number of fields were seen as changed.");
+            var fieldChange = change.FieldChanges.Single();
+            Assert.AreEqual(TestEntityChangeDetector.IntDescription, fieldChange.FieldName, "The wrong field was recorded.");
+
+            bool hasBaseChange = change.HasChange(x => x.IntValue);
+            Assert.IsTrue(hasBaseChange, "The change was not detected.");
+
+            bool hasDerivedChange = change.As<DerivedEntity>().HasChange(x => x.IntValue);
+            Assert.IsTrue(hasDerivedChange, "The change was not detected.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectChangeToDerivedPropertyWhenAdding()
+        {
+            var detector = new DerivedChangeDetector();
+            var tracker = new EntityChangeTracker<TestEntity>(detector);
+            DerivedEntity entity = new DerivedEntity() { DerivedValue = 123 };
+            tracker.Add(entity);
+
+            var changes = tracker.DetectChanges();
+
+            Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
+            EntityChange<TestEntity> change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
+            Assert.AreEqual(EntityState.Added, change.State, "The entity should have been modified.");
+            Assert.AreEqual(1, change.FieldChanges.Count(), "The wrong number of fields were seen as changed.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectChangeToDerivedPropertyWhenRemoving()
+        {
+            var detector = new DerivedChangeDetector();
+            var tracker = new EntityChangeTracker<TestEntity>(detector);
+            DerivedEntity entity = new DerivedEntity() { DerivedValue = 123 };
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+
+            var changes = tracker.DetectChanges();
+
+            Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
+            EntityChange<TestEntity> change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
+            Assert.AreEqual(EntityState.Removed, change.State, "The entity should have been modified.");
+            Assert.AreEqual(1, change.FieldChanges.Count(), "The wrong number of fields were seen as changed.");
+        }
+
+        public class DerivedEntity : TestEntity
+        {
+            public int? DerivedValue { get; set; }
+        }
+
+        public class DerivedChangeDetector : TestEntityChangeDetector
+        {
+            public const string DerivedDescription = "Derived";
+
+            public DerivedChangeDetector()
+            {
+                When<DerivedEntity>()
+                    .Add(DerivedDescription, e => e.DerivedValue, Formatters.FormatInt32);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldIncludeChangeToDoubleDerivedProperty()
+        {
+            var detector = new DoubleDerivedChangeDetector();
+            var tracker = new EntityChangeTracker<TestEntity>(detector);
+            DoubleDerivedEntity entity = new DoubleDerivedEntity() { DoubleDerivedValue = "John" };
+            tracker.Attach(entity);
+
+            entity.DoubleDerivedValue = "Tom";
+
+            var changes = tracker.DetectChanges();
+
+            Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
+            EntityChange<TestEntity> change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
+            Assert.AreEqual(EntityState.Modified, change.State, "The entity should have been modified.");
+            Assert.AreEqual(1, change.FieldChanges.Count(), "The wrong number of fields were seen as changed.");
+        }
+
+        public class DoubleDerivedEntity : DerivedEntity
+        {
+            public string DoubleDerivedValue { get; set; }
+        }
+
+        public class DoubleDerivedChangeDetector : DerivedChangeDetector
+        {
+            public const string DoubleDerivedDescription = "DoubleDerived";
+
+            public DoubleDerivedChangeDetector()
+            {
+                When<DoubleDerivedEntity>()
+                    .Add(DoubleDerivedDescription, x => x.DoubleDerivedValue, Formatters.FormatString);
             }
         }
     }

@@ -20,26 +20,17 @@ namespace ChangeDetector
             lookup.Add(property, value);
         }
 
-        public bool HasValue(PropertyInfo property)
+        public SnapshotValue GetValue(PropertyInfo property)
         {
-            return IsNull() || lookup.ContainsKey(property);
-        }
-
-        public TValue GetValue<TValue>(PropertyInfo property)
-        {
-            if (lookup.ContainsKey(property))
+            if (this == Null)
             {
-                return (TValue)lookup[property];
+                return SnapshotValue.Null;
             }
-            else
+            if (!lookup.ContainsKey(property))
             {
-                return default(TValue);
+                return SnapshotValue.Missing;
             }
-        }
-
-        public bool IsNull()
-        {
-            return Object.ReferenceEquals(this, Null);
+            return new SnapshotValue(lookup[property]);
         }
     }
 }

@@ -70,30 +70,23 @@ namespace ChangeDetector
 
         public IFieldChange GetChange(Snapshot original, Snapshot updated)
         {
-            // If both snapshots represent null entities, then there is not a change.
-            if (original.IsNull() && updated.IsNull())
-            {
-                return null;
-            }
-            // If the snapshot represents a null entity, we say it has a value for the property.
-            // If the property is not in either lookup, it means we're looking at a base class.
-            // If the property is only in one lookup, it means we comparing different classes in a hierarchy.
-            bool hasOriginal = original.HasValue(Property);
-            bool hasUpdated = updated.HasValue(Property);
-            if (hasOriginal != hasUpdated)
+            SnapshotValue originalValue = original.GetValue(Property);
+            SnapshotValue updatedValue = updated.GetValue(Property);
+
+            // If both values evaluate to null, then there are no changes. Primitives will never evaluate to null.
+            if (originalValue.IsNull() && updatedValue.IsNull())
             {
                 return null;
             }
 
-            TProp firstValue = original.GetValue<TProp>(Property);
-            TProp secondValue = updated.GetValue<TProp>(Property);
-            if (Comparer.Equals(firstValue, secondValue))
+            // If only one of the values evaluates to null, there must have been a change.
+            // If both values have values, we need to compare them to see if they changed.
+            if (originalValue.IsNull() != updatedValue.IsNull() || !Comparer.Equals(originalValue.GetValue<TProp>(), updatedValue.GetValue<TProp>()))
             {
-                return null;
+                return new FieldChange<TEntity, TProp>(this, originalValue, updatedValue);
             }
 
-            IFieldChange change = new FieldChange<TEntity, TProp>(this, firstValue, secondValue);
-            return change;
+            return null;
         }
     }
 }

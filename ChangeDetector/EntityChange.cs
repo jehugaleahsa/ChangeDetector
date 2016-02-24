@@ -28,19 +28,11 @@ namespace ChangeDetector
         public EntityChange<TDerived> As<TDerived>()
             where TDerived : class, TEntity
         {
-            TDerived derived = Entity as TDerived;
-            if (derived == null)
-            {
-                return null;
-            }
-            else
-            {
-                EntityChange<TDerived> change = new EntityChange<TDerived>();
-                change.Entity = derived;
-                change.State = State;
-                change.FieldChanges = FieldChanges;
-                return change;
-            }
+            EntityChange<TDerived> change = new EntityChange<TDerived>();
+            change.Entity = Entity as TDerived;
+            change.State = State;
+            change.FieldChanges = FieldChanges;
+            return change;
         }
     }
 }
