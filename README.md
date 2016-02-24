@@ -5,7 +5,9 @@ Easily determine what's changed on an object.
 Download using NuGet: [ChangeDetector](http://nuget.org/packages/ChangeDetector)
 
 ## Overview
-ChangeDetector will take two objects of the same type and determine if they differ. You can define an entity configuration for any class by simply creating a subclass of `EntityConfiguration<TEntity>`:
+ChangeDetector will take two objects of the same type and determine if they differ. It also lets you take snapshots of an object over its lifetime to see if and how it has changed. This is useful in scenarios where you need to track changes but do not want to complicate your business logic with recording every little update. Instead, you simply define which properties you want to track and register the entity with a tracker. After your business logic has run through, you can ask the tracker if any of those properties changed. You could use this to determine if an external systems needs updated with the latest data or even use it build up SQL commnds inside of a homemade ORM.
+
+In order to track changes, you must create an `EntityConfiguration` for each entity you wish to track. This class will indicate which entity properties are of interest and how you wish to display them. You can define an entity configuration by simply creating a subclass of `EntityConfiguration<TEntity>`:
 
     public class TestEntityChangeDetector : EntityConfiguration<TestEntity>
     {
@@ -21,15 +23,14 @@ ChangeDetector will take two objects of the same type and determine if they diff
         }
     }
     
-Within the constructor, you can call `Add` for each property you wish to detect changes. The first argument to `Add` is the human-friendly name you want to give the column. The next argument is a lambda to get at the property you want to use. Finally, the third argument is a delegate to convert the value to a human-friendly string. The `Formatters` static class provides formatters for common values.
+Within the constructor, you can call `Add` for each property you wish to track. The first argument to `Add` is the human-friendly name you want to give the column. The next argument is a lambda to get at the property you want to use. Finally, the third argument is a delegate to convert the value to a human-friendly string. The `Formatters` static class provides formatters for common values.
 
 ## Detecting Changes
-Once you have defined your change detector, you can get the list of changes for two objects by calling `GetChanges`.
+If all you want to do is compare two objects, you can work with the `EntityConfiguration` directly.You can get the list of changes for two objects by calling `GetChanges`.
 
     TestEntityChangeDetector detector = new TestEntityChangeDetector();
     TestEntity entity1 = new TestEntity() { StringValue = "ABC" };
     TestEntity entity2 = new TestEntity() { StringValue = "DEF" };
-    
     IEnumerable<FieldChange> changes = detector.GetChanges(entity1, entity2);
     // String: ABC -> DEF
     
@@ -44,6 +45,8 @@ The `FieldChange` class has the following properties:
 * NewValue - The formatted value of the updated object.
 
 If you need to get at the raw values, you can use the `PropertyInfo`'s `GetValue` method, passing in the original or updated objects. Just be sure to check the type of the object and for `null`s.
+
+## Change Tracker
 
 ## Inheritance
 If your entity can have multiple derived classes, you can specify how to detect changes whenever the entity is of that type, using the `When<TDerived>` method.
