@@ -5,83 +5,69 @@ using System.Reflection;
 
 namespace ChangeDetector
 {
-    internal interface IPropertyExtractor<in TEntity>
-        where TEntity : class
-    {
-        PropertyInfo Property { get; }
-
-        object GetValue(TEntity entity);
-
-        FieldChange GetChange(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated);
-
-        bool IsValueSource(TEntity entity);
-    }
-
-    internal class PropertyConfiguration<TEntity, TProp> : IPropertyConfiguration<TEntity>, IPropertyExtractor<TEntity>
+    internal class PropertyConfiguration<TEntity, TProp> : IPropertyConfiguration<TEntity>
         where TEntity : class
     {
         public PropertyConfiguration(
             string displayName, 
             PropertyInfo propertyInfo,
-            Expression<Func<TEntity, TProp>> accessor, 
             Func<TProp, string> formatter,
             IEqualityComparer<TProp> comparer)
         {
             DisplayName = displayName;
             Property = propertyInfo;
-            Accessor = accessor.Compile();
             Formatter = formatter;
             Comparer = comparer;
         }
 
         public string DisplayName { get; private set; }
 
-        public Func<TEntity, TProp> Accessor { get; private set; }
-
         public PropertyInfo Property { get; private set; }
+
+        private Expression<Func<TEntity, TProp>> Accessor { get; set; }
 
         public Func<TProp, string> Formatter { get; private set; }
 
         public IEqualityComparer<TProp> Comparer { get; private set; }
 
+        public IPropertyConfiguration<TBase> GetBaseConfiguration<TBase>() 
+            where TBase : class
+        {
+            return new PropertyConfiguration<TBase, TProp>(
+                DisplayName,
+                Property,
+                Formatter,
+                Comparer);
+        }
+
+        public bool IsValueSource(TEntity entity)
+        {
+            return Property.DeclaringType.IsAssignableFrom(entity.GetType());
+        }
+
+        public object GetValue(TEntity entity)
+        {
+            return Property.GetValue(entity);
+        }
+
         public FieldChange GetChange(TEntity original, TEntity updated)
         {
-            TProp firstValue = getValue(original);
-            TProp secondValue = getValue(updated);
-            if (Comparer.Equals(firstValue, secondValue))
+            Dictionary<PropertyInfo, object> originalSnapshot = getValue(original);
+            Dictionary<PropertyInfo, object> updatedSnapshot = getValue(updated);
+            return GetChange(originalSnapshot, updatedSnapshot);
+        }
+
+        private Dictionary<PropertyInfo, object> getValue(TEntity entity)
+        {
+            var snapshot = new Dictionary<PropertyInfo, object>();
+            if (entity != null)
             {
-                return null;
+                snapshot.Add(Property, (TProp)Property.GetValue(entity));
             }
-
-            FieldChange change = new FieldChange();
-            change.Property = Property;
-            change.FieldName = DisplayName;
-            change.OldValue = formatValue(original);
-            change.NewValue = formatValue(updated);
-            return change;
+            return snapshot;
         }
 
-        bool IPropertyExtractor<TEntity>.IsValueSource(TEntity entity)
-        {
-            return entity.GetType().IsAssignableFrom(Property.DeclaringType);
-        }
-
-        object IPropertyExtractor<TEntity>.GetValue(TEntity entity)
-        {
-            return getValue(entity);
-        }
-
-        private TProp getValue(TEntity entity)
-        {
-            return Object.Equals(entity, null) ? default(TProp) : Accessor(entity);
-        }
-
-        private string formatValue(TEntity entity)
-        {
-            return Object.Equals(entity, null) ? null : Formatter(Accessor(entity));
-        }
-
-        FieldChange IPropertyExtractor<TEntity>.GetChange(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
+        public FieldChange GetChange(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
         {
             TProp firstValue = getValue(original);
             TProp secondValue = getValue(updated);

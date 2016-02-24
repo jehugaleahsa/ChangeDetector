@@ -35,11 +35,6 @@ namespace ChangeDetector
             return baseConfiguration.GetChanges(original, updated).Concat(derivedConfiguration.GetChanges(original, updated)).ToArray();
         }
 
-        public IEnumerable<FieldChange> GetDerivedChanges(TDerived original, TDerived updated)
-        {
-            return derivedConfiguration.GetChanges(original, updated);
-        }
-
         public IEnumerable<FieldChange> GetDerivedChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
         {
             return derivedConfiguration.GetChanges(original, updated);
@@ -68,9 +63,11 @@ namespace ChangeDetector
             return derivedConfiguration.HasChange((TDerived)original, (TDerived)updated, propertyInfo);
         }
 
-        internal IEnumerable<IPropertyExtractor<TBase>> GetPropertyConfigurations()
+        internal IEnumerable<IPropertyConfiguration<TBase>> GetPropertyConfigurations()
         {
-            return derivedConfiguration.GetPropertyConfigurations().Cast<IPropertyExtractor<TBase>>().ToArray();
+            return derivedConfiguration.GetPropertyConfigurations()
+                .Select(c => c.GetBaseConfiguration<TBase>())
+                .ToArray();
         }
     }
 }

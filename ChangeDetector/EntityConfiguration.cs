@@ -42,7 +42,7 @@ namespace ChangeDetector
                 comparer = EqualityComparer<TProp>.Default;
             }
             var propertyInfo = GetProperty(accessor);
-            var property = new PropertyConfiguration<TEntity, TProp>(displayName, propertyInfo, accessor, formatter, comparer);
+            var property = new PropertyConfiguration<TEntity, TProp>(displayName, propertyInfo, formatter, comparer);
             properties[propertyInfo] = property;
             return this;
         }
@@ -76,24 +76,14 @@ namespace ChangeDetector
 
         public IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated)
         {
-            if (original == null && updated == null)
-            {
-                return new FieldChange[0];
-            }
-
-            var propertyChanges = from property in properties.Values
-                                  let change = property.GetChange(original, updated)
-                                  where change != null
-                                  select change;
-            var relatedChanges = from relationship in relationships.Values
-                                 from change in relationship.GetChanges(original, updated)
-                                 select change;
-            return propertyChanges.Concat(relatedChanges).ToArray();
+            var originalSnapshot = TakeSnapshot(original);
+            var updatedSnapshot = TakeSnapshot(updated);
+            return GetChanges(originalSnapshot, updatedSnapshot);
         }
 
         internal IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
         {
-            var propertyChanges = from property in properties.Values.Cast<IPropertyExtractor<TEntity>>()
+            var propertyChanges = from property in properties.Values
                                   let change = property.GetChange(original, updated)
                                   where change != null
                                   select change;
@@ -137,11 +127,9 @@ namespace ChangeDetector
 
         private interface IRelatedEntity
         {
-            IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated);
-
             IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated);
 
-            IEnumerable<IPropertyExtractor<TEntity>> GetPropertyConfigurations();
+            IEnumerable<IPropertyConfiguration<TEntity>> GetPropertyConfigurations();
         }
 
         private class RelatedEntity<TRelation> : IRelatedEntity
@@ -157,16 +145,9 @@ namespace ChangeDetector
 
             public DerivedEntityConfiguration<TEntity, TRelation> Detector { get; private set; }
 
-            public IEnumerable<FieldChange> GetChanges(TEntity original, TEntity updated)
-            {
-                TRelation originalRelation = getRelation(original);
-                TRelation updatedRelation = getRelation(updated);
-                return Detector.GetDerivedChanges(originalRelation, updatedRelation);
-            }
-
             private TRelation getRelation(TEntity original)
             {
-                return Object.Equals(original, null) ? null : this.accessor(original);
+                return original == null ? null : this.accessor(original);
             }
 
             public IEnumerable<FieldChange> GetChanges(Dictionary<PropertyInfo, object> original, Dictionary<PropertyInfo, object> updated)
@@ -174,19 +155,34 @@ namespace ChangeDetector
                 return Detector.GetDerivedChanges(original, updated);
             }
 
-            public IEnumerable<IPropertyExtractor<TEntity>> GetPropertyConfigurations()
+            public IEnumerable<IPropertyConfiguration<TEntity>> GetPropertyConfigurations()
             {
                 return Detector.GetPropertyConfigurations();
             }
         }
 
-        internal IEnumerable<IPropertyExtractor<TEntity>> GetPropertyConfigurations()
+        internal Dictionary<PropertyInfo, object> TakeSnapshot(TEntity entity)
         {
-            var propertyConfigurations = properties.Values.Cast<IPropertyExtractor<TEntity>>();
+            if (entity == null)
+            {
+                return new Dictionary<PropertyInfo, object>();
+            }
+            var pairs = from configuration in GetPropertyConfigurations()
+                        where configuration.IsValueSource(entity)
+                        select new
+                        {
+                            Property = configuration.Property,
+                            Value = configuration.GetValue(entity)
+                        };
+            return pairs.ToDictionary(p => p.Property, p => p.Value);
+        }
+
+        internal IEnumerable<IPropertyConfiguration<TEntity>> GetPropertyConfigurations()
+        {
             var relatedConfigurations = from relationship in relationships.Values
                                         from configuration in relationship.GetPropertyConfigurations()
                                         select configuration;
-            return propertyConfigurations.Concat(relatedConfigurations).ToArray();
+            return properties.Values.Concat(relatedConfigurations).ToArray();
         }
     }
 }

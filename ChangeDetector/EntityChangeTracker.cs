@@ -30,6 +30,10 @@ namespace ChangeDetector
             this.entityLookup = new Dictionary<TEntity, Entity<TEntity>>(comparer);
         }
 
+        // Added -> Unmodified
+        // Removed -> Unmodified
+        // Unmodified -> Unmodified
+        // Detached -> Unmodified
         public void Attach(TEntity entity)
         {
             if (entity == null)
@@ -45,7 +49,7 @@ namespace ChangeDetector
                 }
                 else if (context.State == EntityState.Removed)
                 {
-                    registerEntity(entity, EntityState.Unmodified);
+                    context.State = EntityState.Unmodified;
                 }
             }
             else
@@ -54,15 +58,23 @@ namespace ChangeDetector
             }
         }
 
-        public void Detach(TEntity entity)
+        // Added -> Detached
+        // Removed -> Detached
+        // Unmodified -> Detached
+        // Detached -> Detached
+        public bool Detach(TEntity entity)
         {
             if (entity == null)
             {
                 throw new ArgumentNullException("entity");
             }
-            entityLookup.Remove(entity);
+            return entityLookup.Remove(entity);
         }
 
+        // Added -> Added
+        // Removed -> Unmodified
+        // Unmodified -> Unmodified
+        // Detached -> Added
         public void Add(TEntity entity)
         {
             if (entity == null)
@@ -88,10 +100,14 @@ namespace ChangeDetector
             Entity<TEntity> context = new Entity<TEntity>();
             context.Instance = entity;
             context.State = state;
-            context.Snapshot = takeSnapshot(entity);
+            context.Snapshot = configuration.TakeSnapshot(entity);
             entityLookup.Add(entity, context);
         }
 
+        // Added -> Detached
+        // Removed -> Removed
+        // Unmodified -> Removed
+        // Detached -> Detached
         public bool Remove(TEntity entity)
         {
             if (entity == null)
@@ -193,7 +209,7 @@ namespace ChangeDetector
         {
             if (context.State == EntityState.Added)
             {
-                var snapshot = takeSnapshot(context.Instance);
+                var snapshot = configuration.TakeSnapshot(context.Instance);
                 return configuration.GetChanges(new Dictionary<PropertyInfo, object>(), snapshot);
             }
             else if (context.State == EntityState.Removed)
@@ -202,7 +218,7 @@ namespace ChangeDetector
             }
             else if (context.State == EntityState.Unmodified)
             {
-                var snapshot = takeSnapshot(context.Instance);
+                var snapshot = configuration.TakeSnapshot(context.Instance);
                 var fieldChanges = configuration.GetChanges(context.Snapshot, snapshot);
                 return fieldChanges;
             }
@@ -264,27 +280,12 @@ namespace ChangeDetector
             else if (context.State == EntityState.Added)
             {
                 context.State = EntityState.Unmodified;
-                context.Snapshot = takeSnapshot(context.Instance);
+                context.Snapshot = configuration.TakeSnapshot(context.Instance);
             }
             else if (context.State == EntityState.Unmodified)
             {
-                context.Snapshot = takeSnapshot(context.Instance);
+                context.Snapshot = configuration.TakeSnapshot(context.Instance);
             }
-        }
-
-        private Dictionary<PropertyInfo, object> takeSnapshot(TEntity entity)
-        {
-            var extractors = configuration.GetPropertyConfigurations();
-            Dictionary<PropertyInfo, object> snapshot = new Dictionary<PropertyInfo, object>();
-            foreach (var extractor in extractors)
-            {
-                if (extractor.IsValueSource(entity))
-                {
-                    object value = extractor.GetValue(entity);
-                    snapshot.Add(extractor.Property, value);
-                }
-            }
-            return snapshot;
         }
 
         private static EntityState getState(EntityState entityState, IEnumerable<FieldChange> fieldChanges)
