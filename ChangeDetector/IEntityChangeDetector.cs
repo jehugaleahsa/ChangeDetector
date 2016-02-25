@@ -11,6 +11,6 @@ namespace ChangeDetector
 
         IEnumerable<IFieldChange> GetChanges(TEntity original, TEntity updated);
 
-        bool HasChange<TProp>(TEntity original, TEntity updated, Expression<Func<TEntity, TProp>> accessor);
+        bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor, TEntity original, TEntity updated);
     }
 }

@@ -12,7 +12,7 @@ namespace ChangeDetector
             return new IFieldChange[0];
         }
 
-        public bool HasChange<TProp>(TEntity original, TEntity updated, Expression<Func<TEntity, TProp>> accessor)
+        public bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor, TEntity original, TEntity updated)
         {
             return false;
         }
@@ -27,7 +27,7 @@ namespace ChangeDetector
         where TBase : class
         where TDerived : class, TBase
     {
-        public bool HasChange<TProp>(TBase original, TBase updated, Expression<Func<TDerived, TProp>> accessor)
+        public bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated)
         {
             return false;
         }
@@ -42,7 +42,7 @@ namespace ChangeDetector
             return new IFieldChange[0];
         }
 
-        public bool HasChange<TProp>(TDerived original, TDerived updated, Expression<Func<TDerived, TProp>> accessor)
+        public bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TDerived original, TDerived updated)
         {
             return false;
         }

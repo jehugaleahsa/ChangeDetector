@@ -94,7 +94,7 @@ namespace ChangeDetector
 
         private EntityConfiguration<TEntity> add<TProp>(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
         {
-            var property = new PropertyConfiguration<TEntity, TProp>(displayName, propertyInfo, formatter, comparer);
+            var property = new PropertyConfiguration<TEntity, TProp>(propertyInfo, displayName, formatter, comparer);
             properties[propertyInfo] = property;
             return this;
         }
@@ -144,13 +144,13 @@ namespace ChangeDetector
             return propertyChanges.Concat(relatedChanges).ToArray();
         }
 
-        public bool HasChange<TProp>(TEntity original, TEntity updated, Expression<Func<TEntity, TProp>> accessor)
+        public bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor, TEntity original, TEntity updated)
         {
             PropertyInfo propertyInfo = GetProperty<TProp>(accessor);
-            return HasChange(original, updated, propertyInfo);
+            return HasChange(propertyInfo, original, updated);
         }
 
-        internal bool HasChange(TEntity original, TEntity updated, PropertyInfo propertyInfo)
+        internal bool HasChange(PropertyInfo propertyInfo, TEntity original, TEntity updated)
         {
             if (propertyInfo == null || !properties.ContainsKey(propertyInfo))
             {

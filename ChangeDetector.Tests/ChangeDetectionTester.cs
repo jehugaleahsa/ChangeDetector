@@ -34,13 +34,13 @@ namespace ChangeDetector.Tests
                 StringValue = "Goodbye"
             };
 
-            Assert.IsTrue(detector.HasChange(original, updated, e => e.BooleanValue), "Boolean value should be changed.");
-            Assert.IsTrue(detector.HasChange(original, updated, e => e.DateTimeValue), "DateTime value should be changed.");
-            Assert.IsTrue(detector.HasChange(original, updated, e => e.GuidValue), "Guid value should be changed.");
-            Assert.IsTrue(detector.HasChange(original, updated, e => e.IntValue), "Int value should be changed.");
-            Assert.IsTrue(detector.HasChange(original, updated, e => e.MoneyValue), "Money value should be changed.");
-            Assert.IsTrue(detector.HasChange(original, updated, e => e.PercentValue), "Percent value should be changed.");
-            Assert.IsTrue(detector.HasChange(original, updated, e => e.StringValue), "String value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.BooleanValue, original, updated), "Boolean value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.DateTimeValue, original, updated), "DateTime value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.GuidValue, original, updated), "Guid value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.IntValue, original, updated), "Int value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.MoneyValue, original, updated), "Money value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.PercentValue, original, updated), "Percent value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.StringValue, original, updated), "String value should be changed.");
 
             var changes = detector.GetChanges(original, updated);
             Assert.AreEqual(7, changes.Count(), "The wrong number of changes were detected.");
@@ -54,7 +54,7 @@ namespace ChangeDetector.Tests
             TestEntity original = null;
             TestEntity updated = new TestEntity() { StringValue = "After" };
 
-            Assert.IsTrue(detector.HasChange(original, updated, a => a.StringValue), "No change detected for the field.");
+            Assert.IsTrue(detector.HasChange(a => a.StringValue, original, updated), "No change detected for the field.");
 
             var changes = detector.GetChanges(original, updated);
 
@@ -73,7 +73,7 @@ namespace ChangeDetector.Tests
             TestEntity original = new TestEntity() { StringValue = "After" };
             TestEntity updated = null;
 
-            Assert.IsTrue(detector.HasChange(original, updated, a => a.StringValue), "No change detected for the field.");
+            Assert.IsTrue(detector.HasChange(a => a.StringValue, original, updated), "No change detected for the field.");
 
             var changes = detector.GetChanges(original, updated);
 
@@ -92,7 +92,7 @@ namespace ChangeDetector.Tests
             TestEntity original = null;
             TestEntity updated = null;
 
-            Assert.IsFalse(detector.HasChange(original, updated, a => a.StringValue), "Change detected for the field.");
+            Assert.IsFalse(detector.HasChange(a => a.StringValue, original, updated), "Change detected for the field.");
 
             var changes = detector.GetChanges(original, updated);
 
@@ -182,7 +182,7 @@ namespace ChangeDetector.Tests
             TestEntity original = new TestEntity();
             TestEntity updated = new TestEntity();
 
-            bool hasChange = detector.HasChange(original, updated, a => a.NotConfigured);
+            bool hasChange = detector.HasChange(a => a.NotConfigured, original, updated);
             Assert.IsFalse(hasChange, "A change should not be detected if the property is not recognized.");
         }
 
@@ -196,7 +196,7 @@ namespace ChangeDetector.Tests
             TestEntity updated = new TestEntity();
 
             Expression<Func<TestEntity, int>> accessor = null;
-            detector.HasChange(original, updated, accessor);
+            detector.HasChange(accessor, original, updated);
         }
 
         [TestMethod]
@@ -208,7 +208,7 @@ namespace ChangeDetector.Tests
             TestEntity original = new TestEntity();
             TestEntity updated = new TestEntity();
 
-            detector.HasChange(original, updated, e => 123);
+            detector.HasChange(e => 123, original, updated);
         }
 
         [TestMethod]
@@ -220,7 +220,7 @@ namespace ChangeDetector.Tests
             TestEntity original = new TestEntity();
             TestEntity updated = new TestEntity();
 
-            detector.HasChange(original, updated, e => e.Field);
+            detector.HasChange(e => e.Field, original, updated);
         }
 
         [TestMethod]
@@ -248,7 +248,7 @@ namespace ChangeDetector.Tests
             DerivedEntity original = new DerivedEntity() { DerivedValue = 123 };
             DerivedEntity updated = new DerivedEntity() { DerivedValue = 234 };
 
-            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.DerivedValue);
+            bool hasChange = detector.As<DerivedEntity>().HasChange(x => x.DerivedValue, original, updated);
 
             Assert.IsTrue(hasChange, "The change was not detected.");
         }
@@ -261,7 +261,7 @@ namespace ChangeDetector.Tests
             TestEntity original = new DerivedEntity() { IntValue = 123 };
             TestEntity updated = new DerivedEntity() { IntValue = 234 };
 
-            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.IntValue);
+            bool hasChange = detector.As<DerivedEntity>().HasChange(x => x.IntValue, original, updated);
 
             Assert.IsTrue(hasChange, "The change was not detected.");
         }
@@ -274,7 +274,7 @@ namespace ChangeDetector.Tests
             TestEntity original = new DerivedEntity() { DerivedValue = 123 };
             TestEntity updated = new DerivedEntity() { DerivedValue = 234 };
 
-            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.DerivedValue);
+            bool hasChange = detector.As<DerivedEntity>().HasChange(x => x.DerivedValue, original, updated);
 
             Assert.IsTrue(hasChange, "The change was not detected.");
         }
@@ -287,7 +287,7 @@ namespace ChangeDetector.Tests
             DerivedEntity original = new DerivedEntity() { IntValue = 123 };
             DerivedEntity updated = new DerivedEntity() { IntValue = 234 };
 
-            bool hasChange = detector.As<DerivedEntity>().HasChange(original, updated, x => x.IntValue);
+            bool hasChange = detector.As<DerivedEntity>().HasChange(x => x.IntValue, original, updated);
 
             Assert.IsTrue(hasChange, "The change was not detected.");
         }

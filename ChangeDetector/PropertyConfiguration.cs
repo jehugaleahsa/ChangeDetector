@@ -7,14 +7,10 @@ namespace ChangeDetector
     internal class PropertyConfiguration<TEntity, TProp> : IPropertyConfiguration<TEntity>
         where TEntity : class
     {
-        public PropertyConfiguration(
-            string displayName, 
-            PropertyInfo propertyInfo,
-            Func<TProp, string> formatter,
-            IEqualityComparer<TProp> comparer)
+        public PropertyConfiguration(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
         {
-            DisplayName = displayName;
             Property = propertyInfo;
+            DisplayName = displayName;
             Formatter = formatter;
             Comparer = comparer;
         }
@@ -30,11 +26,7 @@ namespace ChangeDetector
         public IPropertyConfiguration<TBase> GetBaseConfiguration<TBase>() 
             where TBase : class
         {
-            return new PropertyConfiguration<TBase, TProp>(
-                DisplayName,
-                Property,
-                Formatter,
-                Comparer);
+            return new PropertyConfiguration<TBase, TProp>(Property, DisplayName, Formatter, Comparer);
         }
 
         public bool IsValueSource(TEntity entity)

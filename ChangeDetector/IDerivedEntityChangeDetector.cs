@@ -7,6 +7,6 @@ namespace ChangeDetector
         where TBase : class
         where TDerived : class, TBase
     {
-        bool HasChange<TProp>(TBase original, TBase updated, Expression<Func<TDerived, TProp>> accessor);
+        bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated);
     }
 }

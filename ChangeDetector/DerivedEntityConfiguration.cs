@@ -58,17 +58,17 @@ namespace ChangeDetector
             return derivedConfiguration.GetChanges(original, updated);
         }
 
-        public bool HasChange<TProp>(TDerived original, TDerived updated, Expression<Func<TDerived, TProp>> accessor)
+        public bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TDerived original, TDerived updated)
         {
             PropertyInfo propertyInfo = EntityConfiguration<TDerived>.GetProperty(accessor);
-            return baseConfiguration.HasChange(original, updated, propertyInfo) || derivedConfiguration.HasChange(original, updated, propertyInfo);
+            return baseConfiguration.HasChange(propertyInfo, original, updated) || derivedConfiguration.HasChange(propertyInfo, original, updated);
         }
 
-        public bool HasChange<TProp>(TBase original, TBase updated, Expression<Func<TDerived, TProp>> accessor)
+        public bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated)
         {
             // If the property is in the base object, don't bother casting.
             PropertyInfo propertyInfo = EntityConfiguration<TDerived>.GetProperty(accessor);
-            if (baseConfiguration.HasChange(original, updated, propertyInfo))
+            if (baseConfiguration.HasChange(propertyInfo, original, updated))
             {
                 return true;
             }
@@ -78,7 +78,7 @@ namespace ChangeDetector
             {
                 return false;
             }
-            return derivedConfiguration.HasChange((TDerived)original, (TDerived)updated, propertyInfo);
+            return derivedConfiguration.HasChange(propertyInfo, (TDerived)original, (TDerived)updated);
         }
 
         internal IEnumerable<IPropertyConfiguration<TBase>> GetPropertyConfigurations()
