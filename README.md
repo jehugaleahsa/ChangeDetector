@@ -1,6 +1,6 @@
 # ChangeDetector
 
-Easily determine what's changed on an object.
+Easily detect differences between objects.
 
 Download using NuGet: [ChangeDetector](http://nuget.org/packages/ChangeDetector)
 
