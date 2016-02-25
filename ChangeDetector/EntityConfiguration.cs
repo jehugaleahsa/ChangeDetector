@@ -67,12 +67,20 @@ namespace ChangeDetector
             return detector.GetChanges(originalSnapshot, updatedSnapshot);
         }
 
+        public IFieldChange GetChange<TProp>(Expression<Func<TEntity, TProp>> accessor, TEntity original, TEntity updated)
+        {
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
+            Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
+            Snapshot updatedSnapshot = detector.TakeSnapshot(updated, property);
+            return detector.GetChange(property, originalSnapshot, updatedSnapshot);
+        }
+
         public bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor, TEntity original, TEntity updated)
         {
-            PropertyInfo propertyInfo = ChangeDetector.GetProperty(accessor);
-            Snapshot originalSnapshot = detector.TakeSnapshot(original);
-            Snapshot updatedSnapshot = detector.TakeSnapshot(updated);
-            return detector.HasChange(propertyInfo, originalSnapshot, updatedSnapshot);
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
+            Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
+            Snapshot updatedSnapshot = detector.TakeSnapshot(updated, property);
+            return detector.HasChange(property, originalSnapshot, updatedSnapshot);
         }
 
         IDerivedEntityConfiguration<TEntity> IDerivedEntityConfiguration<TEntity>.Add<TProp>(Expression<Func<TEntity, TProp>> accessor, IEqualityComparer<TProp> comparer)

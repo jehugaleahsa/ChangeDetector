@@ -15,14 +15,24 @@ namespace ChangeDetector
 
         public IEnumerable<IFieldChange> FieldChanges { get; internal set; }
 
+        public IFieldChange GetChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
+        {
+            return getChange<TProp>(accessor);
+        }
+
         public bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
+        {
+            return getChange(accessor) != null;
+        }
+
+        private IFieldChange getChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
             if (property == null)
             {
-                return false;
+                return null;
             }
-            return FieldChanges.Where(c => c.Property == property).Any();
+            return FieldChanges.Where(c => c.Property == property).SingleOrDefault();
         }
 
         public EntityChange<TDerived> As<TDerived>()

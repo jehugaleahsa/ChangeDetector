@@ -19,33 +19,17 @@ namespace ChangeDetector
         object GetValue(object entity);
     }
 
-    internal class PropertyConfiguration<TProp> : IPropertyConfiguration
+    internal abstract class PropertyConfiguration : IPropertyConfiguration
     {
-        public PropertyConfiguration(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+        public PropertyConfiguration(PropertyInfo propertyInfo, string displayName)
         {
             Property = propertyInfo;
             DisplayName = displayName;
-            Formatter = formatter;
-            Comparer = comparer;
         }
 
         public PropertyInfo Property { get; private set; }
 
         public string DisplayName { get; private set; }
-
-        public Func<TProp, string> Formatter { get; private set; }
-
-        public IEqualityComparer<TProp> Comparer { get; private set; }
-
-        public bool IsValueSource(object entity)
-        {
-            return entity != null && Property.DeclaringType.IsAssignableFrom(entity.GetType());
-        }
-
-        public object GetValue(object entity)
-        {
-            return Property.GetValue(entity);
-        }
 
         public Snapshot TakeSingletonSnapshot(object entity)
         {
@@ -61,7 +45,33 @@ namespace ChangeDetector
             return snapshot;
         }
 
-        public IFieldChange GetChange(Snapshot original, Snapshot updated)
+        public bool IsValueSource(object entity)
+        {
+            return entity != null && Property.DeclaringType.IsAssignableFrom(entity.GetType());
+        }
+
+        public object GetValue(object entity)
+        {
+            return Property.GetValue(entity);
+        }
+
+        public abstract IFieldChange GetChange(Snapshot original, Snapshot updated);
+    }
+
+    internal class PropertyConfiguration<TProp> : PropertyConfiguration
+    {
+        public PropertyConfiguration(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+            : base(propertyInfo, displayName)
+        {
+            Formatter = formatter;
+            Comparer = comparer;
+        }
+
+        public Func<TProp, string> Formatter { get; private set; }
+
+        public IEqualityComparer<TProp> Comparer { get; private set; }
+
+        public override IFieldChange GetChange(Snapshot original, Snapshot updated)
         {
             SnapshotValue originalValue = original.GetValue(Property);
             SnapshotValue updatedValue = updated.GetValue(Property);

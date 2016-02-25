@@ -4,7 +4,7 @@ using System.Resources;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("ChangeDetector")]
-[assembly: AssemblyDescription("Detect changes to an object.")]
+[assembly: AssemblyDescription("Automatically detect changes to objects.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Truncon")]
 [assembly: AssemblyProduct("ChangeDetector")]
@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("c8134b4a-ecab-418f-a60d-6f8cd8c13a05")]
 
-[assembly: AssemblyVersion("0.0.4.0")]
-[assembly: AssemblyFileVersion("0.0.4.0")]
+[assembly: AssemblyVersion("0.0.5.0")]
+[assembly: AssemblyFileVersion("0.0.5.0")]
 [assembly: CLSCompliant(true)]
 [assembly: NeutralResourcesLanguageAttribute("en-US")]

@@ -7,6 +7,8 @@ namespace ChangeDetector.Tests
     [TestClass]
     public class ChangeTrackingTester
     {
+        #region Attach
+
         [TestMethod]
         [TestCategory("Unit Test")]
         public void ShouldDetectChanges_Modified()
@@ -52,6 +54,124 @@ namespace ChangeDetector.Tests
 
         [TestMethod]
         [TestCategory("Unit Test")]
+        public void ShouldLeaveUnmodifedAfterAttachingAddedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Add(entity);
+            tracker.Attach(entity);
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Unmodified, change.State, "Attaching an Added entity should make it Unmodified.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldLeaveUnmodifedAfterAttachingRemovedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Remove(entity);
+            tracker.Attach(entity);
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Unmodified, change.State, "Attaching a Removed entity should make it Unmodified.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldRetainModificationIfAttachedTwice()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity() { IntValue = 123 };
+            tracker.Attach(entity);
+            var before = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Unmodified, before.State, "The entity should have been Unmodified to start with.");
+
+            entity.IntValue = 234;
+
+            tracker.Attach(entity); // Should not wipe out changes
+            var after = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Modified, after.State, "The entity should have become Modified.");
+        }
+
+        #endregion
+
+        #region Detach
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetachAddedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Add(entity);
+            tracker.Detach(entity);
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Detached, change.State, "Detaching an Added entity should make it Detached.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetachRemovedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+            tracker.Detach(entity);
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Detached, change.State, "Detaching a Removed entity should make it Detached.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetachUnmodifiedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Attach(entity);
+            tracker.Detach(entity);
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Detached, change.State, "Detaching an Unmodified entity should make it Detached.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldLeaveDetachedEntityDetached()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            // Do not attach the entit, so Detach does nothing
+            Assert.IsFalse(tracker.Detach(entity), "Should not be indicating the item was detached.");
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Detached, change.State, "Detaching a Detached entity should leave it Detached.");
+        }
+
+        #endregion
+
+        #region Add
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
         public void ShouldDetectChanges_Added()
         {
             var detector = new TestEntityChangeDetector();
@@ -84,6 +204,96 @@ namespace ChangeDetector.Tests
             Assert.IsTrue(change.HasChange(e => e.PercentValue), "Percent value should be changed.");
             Assert.IsTrue(change.HasChange(e => e.StringValue), "String value should be changed.");
         }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectMostRecentChangesForAdded()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity() { IntValue = 123 };
+            tracker.Add(entity);
+
+            entity.IntValue = 234;
+
+            var after = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Added, after.State, "The entity should have remained Added.");
+            Assert.IsTrue(after.HasChange(x => x.IntValue), "The IntValue should have changed.");
+            var change = after.GetChange(x => x.IntValue);
+            Assert.IsNotNull(change, "The change was null after detecting its prescence.");
+            Assert.AreEqual(234, change.UpdatedValue, "The latest value was not returned.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldRemainAddedAfterAddingTwice()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Add(entity);
+            var before = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Added, before.State, "The entity should have been Added to start with.");
+
+            tracker.Add(entity);
+            var after = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Added, after.State, "The entity should have remained Added.");
+        }
+
+        /// <summary>
+        /// The only way an entity would be Removed is if it was at one
+        /// point Attached (Unmodified/Modified). If you Remove an Added
+        /// entity, it becomes Detached instead. Thus, re-adding it
+        /// is the same as un-removing it, or putting it back into
+        /// an (Unmodified/Modified) state.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldLeaveUnmodifiedWhenAddingRemovedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+            tracker.Add(entity);
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Unmodified, change.State, "Adding a Removed entity should make it Unmodified.");
+        }
+
+        /// <summary>
+        /// The only way an entity would be Removed is if it was at one
+        /// point Attached (Unmodified/Modified). If you Remove an Added
+        /// entity, it becomes Detached instead. Thus, re-adding it
+        /// is the same as un-removing it, or putting it back into
+        /// an (Unmodified/Modified) state.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldLeaveModifiedWhenAddingRemovedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity() { IntValue = 123 };
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+            tracker.Add(entity);
+
+            entity.IntValue = 234;
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Modified, change.State, "Adding a Removed entity that was changed should make it Modified.");
+            Assert.IsTrue(change.HasChange(x => x.IntValue), "The modified value does not reflect the latest value.");
+        }
+
+        #endregion
+
+        #region Remove
 
         [TestMethod]
         [TestCategory("Unit Test")]
@@ -120,6 +330,199 @@ namespace ChangeDetector.Tests
             Assert.IsTrue(change.HasChange(e => e.PercentValue), "Percent value should be changed.");
             Assert.IsTrue(change.HasChange(e => e.StringValue), "String value should be changed.");
         }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectMostRecentChangesForRemoved()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity() { IntValue = 123 };
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+
+            entity.IntValue = 234;
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Removed, change.State, "The entity should have remained Added.");
+            Assert.IsTrue(change.HasChange(x => x.IntValue), "The IntValue should have changed.");
+            
+            var fieldChange = change.GetChange(x => x.IntValue);
+            Assert.IsNotNull(fieldChange, "The change was null after detecting its prescence.");
+            Assert.AreEqual(234, fieldChange.OriginalValue, "The latest value was not returned.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetatchAddedEntitiesThatAreRemoved()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Add(entity);
+            tracker.Remove(entity);
+
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Detached, change.State, "The entity should have been Detached.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldRemainRemovedAfterRemovingTwice()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+            var before = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Removed, before.State, "The entity should have been Removed to start with.");
+
+            tracker.Remove(entity);
+            var after = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Removed, after.State, "The entity should have remained Removed.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldLeaveDetachedIfRemovingDetachedEntity()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            Assert.IsFalse(tracker.Remove(entity), "Should not have indicated the entity was removed when it was Detached.");
+        }
+
+        #endregion
+
+        #region DetectChanges
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectModifiedByDefault()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity() { IntValue = 1234 };
+            tracker.Attach(entity);
+            entity.IntValue = 234;
+
+            var changes = tracker.DetectChanges();
+            Assert.AreEqual(1, changes.Count(), "The entity should have been seen as changed.");
+            var change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "The wrong entity was returned.");
+            Assert.AreEqual(EntityState.Modified, change.State, "The entity was not modified.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectAddedByDefault()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Add(entity);
+
+            var changes = tracker.DetectChanges();
+            Assert.AreEqual(1, changes.Count(), "The entity should have been seen as changed.");
+            var change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "The wrong entity was returned.");
+            Assert.AreEqual(EntityState.Added, change.State, "The entity was not added.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectRemovedByDefault()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+
+            var changes = tracker.DetectChanges();
+            Assert.AreEqual(1, changes.Count(), "The entity should have been seen as changed.");
+            var change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "The wrong entity was returned.");
+            Assert.AreEqual(EntityState.Removed, change.State, "The entity was not removed.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldAllowRetrievingUnmodifiedEntities()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Attach(entity);
+
+            var changes = tracker.DetectChanges(EntityState.Unmodified);
+            Assert.AreEqual(1, changes.Count(), "The entity should have been seen as changed.");
+            var change = changes.Single();
+            Assert.AreSame(entity, change.Entity, "The wrong entity was returned.");
+            Assert.AreEqual(EntityState.Unmodified, change.State, "The entity was not unmodified.");
+        }
+
+        #endregion
+
+        #region CommitChanges
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldNotDetectChangesAfterCommitting()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity() { IntValue = 1234 };
+            tracker.Attach(entity);
+            entity.IntValue = 234;  // Should make the entity Modified
+
+            tracker.CommitChanges();
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Unmodified, change.State, "The entity should be Unmodified after committing.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldNotDetectAddedAfterCommitting()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Add(entity);
+
+            tracker.CommitChanges();
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Unmodified, change.State, "The entity should be Unmodified after committing.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldMarkRemovedAsDetachedAfterCommitting()
+        {
+            var detector = new TestEntityChangeDetector();
+            EntityChangeTracker<TestEntity> tracker = new EntityChangeTracker<TestEntity>(detector);
+
+            TestEntity entity = new TestEntity();
+            tracker.Attach(entity);
+            tracker.Remove(entity);
+
+            tracker.CommitChanges();
+            var change = tracker.DetectChanges(entity);
+            Assert.AreEqual(EntityState.Detached, change.State, "The entity should be Detached after committing.");
+        }
+
+        #endregion
 
         public class TestEntity
         {

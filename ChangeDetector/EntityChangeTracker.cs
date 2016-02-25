@@ -213,7 +213,8 @@ namespace ChangeDetector
             }
             else if (context.State == EntityState.Removed)
             {
-                return configuration.GetChanges(context.Snapshot, Snapshot.Null);
+                var snapshot = configuration.TakeSnapshot(context.Instance);
+                return configuration.GetChanges(snapshot, Snapshot.Null);
             }
             else if (context.State == EntityState.Unmodified)
             {
@@ -224,66 +225,6 @@ namespace ChangeDetector
             else
             {
                 return new IFieldChange[0];
-            }
-        }
-
-        public void CommitChanges()
-        {
-            commitChanges(EntityState.Added | EntityState.Modified | EntityState.Removed);
-        }
-
-        public void CommitChanges(EntityState state)
-        {
-            commitChanges(state);
-        }
-
-        private void commitChanges(EntityState state)
-        {
-            foreach (Entity<TEntity> context in entityLookup.Values)
-            {
-                if (context.State == EntityState.Added && state.HasFlag(EntityState.Added))
-                {
-                    commitChanges(context);
-                }
-                else if (context.State == EntityState.Unmodified && (state.HasFlag(EntityState.Modified) || state.HasFlag(EntityState.Unmodified)))
-                {
-                    commitChanges(context);
-                }
-                else if (context.State == EntityState.Removed && state.HasFlag(EntityState.Removed))
-                {
-                    commitChanges(context);
-                }
-            }
-        }
-
-        public void CommitChanges(TEntity entity)
-        {
-            if (entity == null)
-            {
-                throw new ArgumentNullException("entity");
-            }
-            Entity<TEntity> context;
-            if (!entityLookup.TryGetValue(entity, out context))
-            {
-                return;
-            }
-            commitChanges(context);
-        }
-
-        private void commitChanges(Entity<TEntity> context)
-        {
-            if (context.State == EntityState.Removed)
-            {
-                entityLookup.Remove(context.Instance);
-            }
-            else if (context.State == EntityState.Added)
-            {
-                context.State = EntityState.Unmodified;
-                context.Snapshot = configuration.TakeSnapshot(context.Instance);
-            }
-            else if (context.State == EntityState.Unmodified)
-            {
-                context.Snapshot = configuration.TakeSnapshot(context.Instance);
             }
         }
 
@@ -311,6 +252,67 @@ namespace ChangeDetector
             else
             {
                 return EntityState.Detached;
+            }
+        }
+
+        public void CommitChanges()
+        {
+            commitChanges(EntityState.Added | EntityState.Modified | EntityState.Removed);
+        }
+
+        public void CommitChanges(EntityState state)
+        {
+            commitChanges(state);
+        }
+
+        private void commitChanges(EntityState state)
+        {
+            HashSet<TEntity> removals = new HashSet<TEntity>(entityLookup.Comparer);
+            foreach (Entity<TEntity> context in entityLookup.Values)
+            {
+                if (context.State == EntityState.Added && state.HasFlag(EntityState.Added))
+                {
+                    context.State = EntityState.Unmodified;
+                    context.Snapshot = configuration.TakeSnapshot(context.Instance);
+                }
+                else if (context.State == EntityState.Unmodified && (state.HasFlag(EntityState.Modified) || state.HasFlag(EntityState.Unmodified)))
+                {
+                    context.Snapshot = configuration.TakeSnapshot(context.Instance);
+                }
+                else if (context.State == EntityState.Removed && state.HasFlag(EntityState.Removed))
+                {
+                    removals.Add(context.Instance);
+                }
+            }
+            foreach (TEntity entity in removals)
+            {
+                entityLookup.Remove(entity);
+            }
+        }
+
+        public void CommitChanges(TEntity entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException("entity");
+            }
+            Entity<TEntity> context;
+            if (!entityLookup.TryGetValue(entity, out context))
+            {
+                return;
+            }
+            if (context.State == EntityState.Added)
+            {
+                context.State = EntityState.Unmodified;
+                context.Snapshot = configuration.TakeSnapshot(context.Instance);
+            }
+            else if (context.State == EntityState.Unmodified)
+            {
+                context.Snapshot = configuration.TakeSnapshot(context.Instance);
+            }
+            else if (context.State == EntityState.Removed)
+            {
+                entityLookup.Remove(entity);
             }
         }
     }

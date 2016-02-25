@@ -10,6 +10,8 @@ namespace ChangeDetector
         where TDerived : class, TBase
     {
         bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated);
+
+        IFieldChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated);
     }
 
     internal class DerivedEntityChangeDetector<TBase, TDerived> : IDerivedEntityChangeDetector<TBase, TDerived>
@@ -39,17 +41,33 @@ namespace ChangeDetector
         public bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
-            Snapshot originalSnapshot = detector.TakeSnapshot(original);
-            Snapshot updatedSnapshot = detector.TakeSnapshot(updated);
+            Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
+            Snapshot updatedSnapshot = detector.TakeSnapshot(updated, property);
             return detector.HasChange(property, originalSnapshot, updatedSnapshot);
         }
 
         public bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TDerived original, TDerived updated)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
-            Snapshot originalSnapshot = detector.TakeSnapshot(original);
-            Snapshot updatedSnapshot = detector.TakeSnapshot(updated);
+            Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
+            Snapshot updatedSnapshot = detector.TakeSnapshot(updated, property);
             return detector.HasChange(property, originalSnapshot, updatedSnapshot);
+        }
+
+        public IFieldChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated)
+        {
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
+            Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
+            Snapshot updatedSnapshot = detector.TakeSnapshot(updated, property);
+            return detector.GetChange(property, originalSnapshot, updatedSnapshot);
+        }
+
+        public IFieldChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TDerived original, TDerived updated)
+        {
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
+            Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
+            Snapshot updatedSnapshot = detector.TakeSnapshot(updated, property);
+            return detector.GetChange(property, originalSnapshot, updatedSnapshot);
         }
     }
 
