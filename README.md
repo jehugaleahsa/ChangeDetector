@@ -61,15 +61,15 @@ Most of the time, you will want to track the state of a single object throughout
     
 The `EntityChange` class gives a summary of what changed on the entity. It has the following members:
 * Entity - The object that was being tracked
-* State - Says whether the object is Unmodified, Modified, Added, Removed or Detached.
+* State - Says whether the object is `Unmodified`, `Modified`, `Added`, `Removed` or `Detached`.
 * PropertyChanges - The individual properties that were changed.
 * GetChange - Gets the `IPropertyChange` for a property, or `null` if the property isn't changed or tracked.
 * HasChange - Determines whether there was a change for a property.
 * As<TDerived> - Makes it easier to detect changes on sub-classes (see below)
 
-There are three overloads of `DetectChanges`. The first takes no arguments and returns an `EntityChange` for each entity that was modified, added or removed. If you only want to get back entities with certain states or include unmodified entities, you can use the second overload that accepts an `EntityState` flag enum. Finally, you can retrieve the state of a single entity using the third overload. If the entity is not being tracked, its state will be detached.
+There are three overloads of `DetectChanges`. The first takes no arguments and returns an `EntityChange` for each entity that was `Modified`, `Added` or `Removed`. If you only want to get back entities with certain states or include `Unmodified` entities, you can use the second overload that accepts an `EntityState` flag enum. Finally, you can retrieve the state of a single entity using the third overload. In the case that the entity is not being tracked, its state will be `Detached`.
 
-Once you have finished processing the changes, you can commit the changes to the tracker, via `CommitChanges`. This will ensure the next time you call `DetectChanges` you will not get the same changes back again. Modified and added entities will become unmodified and removed entities will not longer be tracked.
+Once you have finished processing the changes, you can commit the changes to the tracker, via `CommitChanges`. This will ensure the next time you call `DetectChanges` you will not get the same changes back again. `Modified` and `Added` entities will become `Unmodified`, and `Removed` entities will no longer be tracked.
 
 ## Inheritance
 If your entity can have multiple derived classes, you can specify how to detect changes whenever the entity is of that type, using the `When<TDerived>` method.
