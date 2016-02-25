@@ -31,16 +31,16 @@ If all you want to do is compare two objects, you can work with the `EntityConfi
     TestEntityChangeDetector detector = new TestEntityChangeDetector();
     TestEntity entity1 = new TestEntity() { StringValue = "ABC" };
     TestEntity entity2 = new TestEntity() { StringValue = "DEF" };
-    IEnumerable<IFieldChange> changes = detector.GetChanges(entity1, entity2);
+    IEnumerable<IPropertyChange> changes = detector.GetChanges(entity1, entity2);
     // String: ABC -> DEF
     
 Or, if you just need to know if a value changed:
 
     bool hasChanged = detector.HasChange(x => x.StringValue, entity1, entity2);
     
-The `IFieldChange` interface has the following members:
+The `IPropertyChange` interface has the following members:
 * Property - The `System.Reflection.PropertyInfo` object for the property that changed.
-* FieldName - The human-friendly name of the property passed to the `Add` method.
+* DisplayName - The human-friendly name of the property passed to the `Add` method.
 * OriginalValue - The value found in the first entity, as an `object`.
 * UpdatedValue - The value found in the second entity, as an `object`.
 * FormatOriginalValue - A method to get the formatted value of the first entity, using the supplied formatter.
@@ -62,8 +62,8 @@ Most of the time, you will want to track the state of a single object throughout
 The `EntityChange` class gives a summary of what changed on the entity. It has the following members:
 * Entity - The object that was being tracked
 * State - Says whether the object is Unmodified, Modified, Added, Removed or Detached.
-* FieldChanges - The individual properties that were changed.
-* GetChange - Gets the `IFieldChange` for a property, or `null` if the property isn't changed or tracked.
+* PropertyChanges - The individual properties that were changed.
+* GetChange - Gets the `IPropertyChange` for a property, or `null` if the property isn't changed or tracked.
 * HasChange - Determines whether there was a change for a property.
 * As<TDerived> - Makes it easier to detect changes on sub-classes (see below)
 
