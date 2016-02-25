@@ -60,12 +60,20 @@ namespace ChangeDetector
                 throw new ArgumentNullException("accessor");
             }
             MemberExpression memberExpression = accessor.Body as MemberExpression;
-            if (memberExpression == null || memberExpression.Member.MemberType != MemberTypes.Property)
+            if (memberExpression == null)
             {
-                throw new ArgumentException("The accessor does not refer to a property of the entity.", "accessor");
+                throw new ArgumentException("The expression must refer to a property.", "accessor");
             }
-            PropertyInfo propertyInfo = (PropertyInfo)memberExpression.Member;
-            return propertyInfo;
+            PropertyInfo property = memberExpression.Member as PropertyInfo;
+            if (property == null)
+            {
+                throw new ArgumentException("The expression must refer to a property.", "accessor");
+            }
+            if (!property.DeclaringType.IsAssignableFrom(typeof(TEntity)))
+            {
+                throw new ArgumentException("The expression must refer to a property of the entity.", "accessor");
+            }
+            return property;
         }
 
         public Snapshot TakeSnapshot(object entity)
