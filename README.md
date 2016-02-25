@@ -5,7 +5,7 @@ Easily determine what's changed on an object.
 Download using NuGet: [ChangeDetector](http://nuget.org/packages/ChangeDetector)
 
 ## Overview
-ChangeDetector will take two objects of the same type and determine if they differ. It also lets you take snapshots of an object over its lifetime to see if and how it has changed. This is useful in scenarios where you need to track changes but do not want to complicate your business logic with recording every little update. Instead, you simply define which properties you want to track and register the entity with a tracker. After your business logic has run through, you can ask the tracker if any of those properties changed. You could use this to determine if an external systems needs updated with the latest data or even use it build up SQL commnds inside of a homemade ORM.
+ChangeDetector will take two objects of the same type and determine if they differ. It also lets you take snapshots of an object over its lifetime to see if and how it has changed. This is useful in scenarios where you need to track changes but do not want to complicate your business logic with recording every little update. Instead, you simply define which properties you want to track and register the entity with a tracker. After your business logic has run through, you can ask the tracker if any of those properties changed. You could use this to determine if an external systems needs updated with the latest data or even use it build up SQL commnds inside of a homespun ORM -- there are many applications.
 
 In order to track changes, you must create an `EntityConfiguration` for each entity you wish to track. This class will indicate which entity properties are of interest and how you wish to display them. You can define an entity configuration by simply creating a subclass of `EntityConfiguration<TEntity>`:
 
@@ -13,38 +13,40 @@ In order to track changes, you must create an `EntityConfiguration` for each ent
     {
         public TestEntityChangeDetector()
         {
-            Add("String", x => x.StringValue, Formatters.FormatString);
-            Add("DateTime", x => x.DateTimeValue, Formatters.FormatDateTime);
-            Add("Money", x => x.MoneyValue, Formatters.FormatMoney);
-            Add("Int", x => x.IntValue, Formatters.FormatInt32);
-            Add("Boolean", x => x.BooleanValue, Formatters.FormatBoolean);
-            Add("Percent", x => x.PercentValue, Formatters.FormatPercent);
-            Add("Guid", x => x.GuidValue, Formatters.FormatGuid);
+            Add(x => x.StringValue, "String", Formatters.FormatString);
+            Add(x => x.DateTimeValue, "DateTime", Formatters.FormatDateTime);
+            Add(x => x.MoneyValue, "Money", Formatters.FormatMoney);
+            Add(x => x.IntValue, "Int", Formatters.FormatInt32);
+            Add(x => x.BooleanValue, "Boolean", Formatters.FormatBoolean);
+            Add(x => x.PercentValue, "Percent", Formatters.FormatPercent);
+            Add(x => x.GuidValue, "Guid", Formatters.FormatGuid);
         }
     }
     
-Within the constructor, you can call `Add` for each property you wish to track. The first argument to `Add` is the human-friendly name you want to give the column. The next argument is a lambda to get at the property you want to use. Finally, the third argument is a delegate to convert the value to a human-friendly string. The `Formatters` static class provides formatters for common values.
+Within the constructor, you call `Add` for each property you wish to track. The first argument to `Add` is a lambda to get at the property you're tracking. The next argument is the human-friendly name you want to give the column. The third argument is a delegate to convert the value to a human-friendly string. The `Formatters` static class provides formatters for common values. There is also a fourth `IEqualityComparer` argument, in cases where you are not working with simply types. Only the first argument is required; by default the display name will default to the property name and the formatter will simply call `ToString()`. 
 
 ## Detecting Changes
-If all you want to do is compare two objects, you can work with the `EntityConfiguration` directly.You can get the list of changes for two objects by calling `GetChanges`.
+If all you want to do is compare two objects, you can work with the `EntityConfiguration` directly. You can get the list of changes for two objects by calling `GetChanges`.
 
     TestEntityChangeDetector detector = new TestEntityChangeDetector();
     TestEntity entity1 = new TestEntity() { StringValue = "ABC" };
     TestEntity entity2 = new TestEntity() { StringValue = "DEF" };
-    IEnumerable<FieldChange> changes = detector.GetChanges(entity1, entity2);
+    IEnumerable<IFieldChange> changes = detector.GetChanges(entity1, entity2);
     // String: ABC -> DEF
     
 Or, if you just need to know if a value changed:
 
-    bool hasChanged = detector.HasChange(entity1, entity2, x => x.StringValue);
+    bool hasChanged = detector.HasChange(x => x.StringValue, entity1, entity2);
     
-The `FieldChange` class has the following properties:
-* Property - The `System.Reflection.PropertyInfo` object for the property that change.
+The `IFieldChange` interface has the following members:
+* Property - The `System.Reflection.PropertyInfo` object for the property that changed.
 * FieldName - The human-friendly name of the property passed to the `Add` method.
-* OldValue - The formatted value of the original object.
-* NewValue - The formatted value of the updated object.
+* OriginalValue - The value found in the first entity, as an `object`.
+* UpdatedValue - The value found in the second entity, as an `object`.
+* FormatOriginalValue - A method to get the formatted value of the first entity, using the supplied formatter.
+* FormatUpdatedValue - A method to get the formatted value of the second entity, using the supplied formatter.
 
-If you need to get at the raw values, you can use the `PropertyInfo`'s `GetValue` method, passing in the original or updated objects. Just be sure to check the type of the object and for `null`s.
+`OriginalValue` and `UpdatedValue` are `object`s. If the property could not be found in an entity, it is given the value of `null`, even for primitive properties. Be sure to check for `null`s if you plan to work with these properties. The `Format*` methods will account for `null`s on your behalf. 
 
 ## Change Tracker
 
@@ -58,12 +60,12 @@ If your entity can have multiple derived classes, you can specify how to detect 
             Add("String", x => x.StringValue, Formatters.FormatString);
         
             When<DerivedA>()
-                .Add("A1", x => x.A1, Formatters.FormatString)
-                .Add("A2", x => x.A2, Formatters.FormatString);
+                .Add(x => x.A1, "A1", Formatters.FormatString)
+                .Add(x => x.A2, "A2", Formatters.FormatString);
                 
             When<DerivedB>()
-                .Add("B1", x => x.B1, Formatters.FormatString)
-                .Add("B2", x => x.B2, Formatters.FormatString);
+                .Add(x => x.B1, "B1", Formatters.FormatString)
+                .Add(x => x.B2, "B2", Formatters.FormatString);
         }
     }
     
