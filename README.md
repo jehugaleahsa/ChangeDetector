@@ -49,7 +49,7 @@ The `IPropertyChange` interface has the following members:
 `OriginalValue` and `UpdatedValue` are `object`s. If the property could not be found in an entity, it is set to `null`, even for primitive properties. Be sure to check for `null`s if you plan to work directly with these properties. The `Format*` methods will account for `null`s on your behalf. 
 
 ## Change Tracker
-Most of the time, you will want to track the state of a single object throughout it's lifetime. The `EntityChangeTracker` class provides methods to register a object and later ask what changed. The `EntityChangeTracker` constructor takes an `EntityConfiguration` -- this tells the tracker how to detect changes to the objects it manages. As soon as your entity comes into life, register it with the tracker using the `Attach` method. At the end of your code, you can simply ask the tracker for the status of the entity.
+Most of the time, you will want to track the state of a single object throughout it's lifetime. The `EntityChangeTracker` class provides methods to register an object and later ask what changed. The `EntityChangeTracker` constructor takes an `EntityConfiguration` -- this tells the tracker how to detect changes to the objects it manages. As soon as your entity comes into life, register it with the tracker using the `Attach` method. At the end of your code, you can simply ask the tracker for the status of the entity.
 
     TestEntityChangeDetector detector = new TestEntityChangeDetector();
     EntityChangeTracker tracker = new EntityChangeTracker(detector);
