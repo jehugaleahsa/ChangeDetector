@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 
 namespace ChangeDetector
@@ -20,14 +19,13 @@ namespace ChangeDetector
     }
 
     [DebuggerDisplay("{FieldName,nq}: {FormatOriginalValue(),nq} -> {FormatUpdatedValue(),nq}")]
-    internal class FieldChange<TEntity, TProp> : IFieldChange
-        where TEntity : class
+    internal class FieldChange<TProp> : IFieldChange
     {
-        private readonly PropertyConfiguration<TEntity, TProp> configuration;
+        private readonly PropertyConfiguration<TProp> configuration;
         private readonly SnapshotValue original;
         private readonly SnapshotValue updated;
 
-        public FieldChange(PropertyConfiguration<TEntity, TProp> configuration, SnapshotValue original, SnapshotValue updated)
+        public FieldChange(PropertyConfiguration<TProp> configuration, SnapshotValue original, SnapshotValue updated)
         {
             this.configuration = configuration;
             this.original = original;

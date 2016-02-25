@@ -4,8 +4,22 @@ using System.Reflection;
 
 namespace ChangeDetector
 {
-    internal class PropertyConfiguration<TEntity, TProp> : IPropertyConfiguration<TEntity>
-        where TEntity : class
+    internal interface IPropertyConfiguration
+    {
+        PropertyInfo Property { get; }
+
+        string DisplayName { get; }
+
+        Snapshot TakeSingletonSnapshot(object entity);
+
+        IFieldChange GetChange(Snapshot original, Snapshot updated);
+
+        bool IsValueSource(object entity);
+
+        object GetValue(object entity);
+    }
+
+    internal class PropertyConfiguration<TProp> : IPropertyConfiguration
     {
         public PropertyConfiguration(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
         {
@@ -15,38 +29,25 @@ namespace ChangeDetector
             Comparer = comparer;
         }
 
-        public string DisplayName { get; private set; }
-
         public PropertyInfo Property { get; private set; }
+
+        public string DisplayName { get; private set; }
 
         public Func<TProp, string> Formatter { get; private set; }
 
         public IEqualityComparer<TProp> Comparer { get; private set; }
 
-        public IPropertyConfiguration<TBase> GetBaseConfiguration<TBase>() 
-            where TBase : class
-        {
-            return new PropertyConfiguration<TBase, TProp>(Property, DisplayName, Formatter, Comparer);
-        }
-
-        public bool IsValueSource(TEntity entity)
+        public bool IsValueSource(object entity)
         {
             return entity != null && Property.DeclaringType.IsAssignableFrom(entity.GetType());
         }
 
-        public object GetValue(TEntity entity)
+        public object GetValue(object entity)
         {
             return Property.GetValue(entity);
         }
 
-        public IFieldChange GetChange(TEntity original, TEntity updated)
-        {
-            var originalSnapshot = getSingletonSnapshot(original);
-            var updatedSnapshot = getSingletonSnapshot(updated);
-            return GetChange(originalSnapshot, updatedSnapshot);
-        }
-
-        private Snapshot getSingletonSnapshot(TEntity entity)
+        public Snapshot TakeSingletonSnapshot(object entity)
         {
             if (entity == null)
             {
@@ -75,7 +76,7 @@ namespace ChangeDetector
             // If both values have values, we need to compare them to see if they changed.
             if (originalValue.IsNull() != updatedValue.IsNull() || !Comparer.Equals(originalValue.GetValue<TProp>(), updatedValue.GetValue<TProp>()))
             {
-                return new FieldChange<TEntity, TProp>(this, originalValue, updatedValue);
+                return new FieldChange<TProp>(this, originalValue, updatedValue);
             }
 
             return null;

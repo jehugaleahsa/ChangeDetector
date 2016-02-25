@@ -144,26 +144,10 @@ namespace ChangeDetector.Tests
 
         [TestMethod]
         [TestCategory("Unit Test")]
-        [ExpectedException(typeof(ArgumentException))]
-        public void ShouldThrowExceptionIfPropertyMissingDescription()
-        {
-            new BadChangeDetector("    ", e => e.StringValue, Formatters.FormatString);
-        }
-
-        [TestMethod]
-        [TestCategory("Unit Test")]
         [ExpectedException(typeof(ArgumentNullException))]
         public void ShouldThrowExceptionIfAccessorNull()
         {
             new BadChangeDetector("Description", null, Formatters.FormatString);
-        }
-
-        [TestMethod]
-        [TestCategory("Unit Test")]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void ShouldThrowExceptionIfFormatterNull()
-        {
-            new BadChangeDetector("Description", e => e.StringValue, null);
         }
 
         public class BadChangeDetector : EntityConfiguration<TestEntity>

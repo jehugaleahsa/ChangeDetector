@@ -17,7 +17,7 @@ namespace ChangeDetector
 
         public bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
         {
-            PropertyInfo property = EntityConfiguration<TEntity>.GetProperty(accessor);
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
             if (property == null)
             {
                 return false;
