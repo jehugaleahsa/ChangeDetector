@@ -152,7 +152,7 @@ namespace ChangeDetector
                 else if (context.State == EntityState.Unmodified && (state.HasFlag(EntityState.Modified) || state.HasFlag(EntityState.Unmodified)))
                 {
                     EntityChange<TEntity> change = getEntityChange(context);
-                    if (change.PropertyChanges.Any())
+                    if (change.GetChanges().Any())
                     {
                         if (state.HasFlag(EntityState.Modified))
                         {
@@ -186,10 +186,10 @@ namespace ChangeDetector
             }
             else
             {
-                EntityChange<TEntity> change = new EntityChange<TEntity>();
-                change.Entity = entity;
-                change.State = EntityState.Detached;
-                change.PropertyChanges = new IPropertyChange[0];
+                EntityChange<TEntity> change = new EntityChange<TEntity>(
+                    entity, 
+                    EntityState.Detached, 
+                    new IPropertyChange[0]);
                 return change;
             }
         }
@@ -197,10 +197,10 @@ namespace ChangeDetector
         private EntityChange<TEntity> getEntityChange(Entity<TEntity> context)
         {
             var propertyChanges = getPropertyChanges(context);
-            EntityChange<TEntity> change = new EntityChange<TEntity>();
-            change.Entity = context.Instance;
-            change.State = getState(context.State, propertyChanges);
-            change.PropertyChanges = propertyChanges;
+            EntityChange<TEntity> change = new EntityChange<TEntity>(
+                context.Instance,
+                getState(context.State, propertyChanges),
+                propertyChanges);
             return change;
         }
 

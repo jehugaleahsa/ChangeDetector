@@ -41,7 +41,7 @@ namespace ChangeDetector.Tests
             var change = changes.Single();
             Assert.AreSame(entity, change.Entity, "The wrong entity was returned.");
             Assert.AreEqual(EntityState.Modified, change.State, "The entity was not marked as modified.");
-            Assert.AreEqual(7, change.PropertyChanges.Count(), "The wrong number of changes were detected.");
+            Assert.AreEqual(7, change.GetChanges().Count(), "The wrong number of changes were detected.");
 
             Assert.IsTrue(change.HasChange(e => e.BooleanValue), "Boolean value should be changed.");
             Assert.IsTrue(change.HasChange(e => e.DateTimeValue), "DateTime value should be changed.");
@@ -194,7 +194,7 @@ namespace ChangeDetector.Tests
             var change = changes.Single();
             Assert.AreSame(entity, change.Entity, "The wrong entity was returned.");
             Assert.AreEqual(EntityState.Added, change.State, "The entity was not marked as modified.");
-            Assert.AreEqual(7, change.PropertyChanges.Count(), "The wrong number of changes were detected.");
+            Assert.AreEqual(7, change.GetChanges().Count(), "The wrong number of changes were detected.");
 
             Assert.IsTrue(change.HasChange(e => e.BooleanValue), "Boolean value should be changed.");
             Assert.IsTrue(change.HasChange(e => e.DateTimeValue), "DateTime value should be changed.");
@@ -320,7 +320,7 @@ namespace ChangeDetector.Tests
             var change = changes.Single();
             Assert.AreSame(entity, change.Entity, "The wrong entity was returned.");
             Assert.AreEqual(EntityState.Removed, change.State, "The entity was not marked as modified.");
-            Assert.AreEqual(7, change.PropertyChanges.Count(), "The wrong number of changes were detected.");
+            Assert.AreEqual(7, change.GetChanges().Count(), "The wrong number of changes were detected.");
 
             Assert.IsTrue(change.HasChange(e => e.BooleanValue), "Boolean value should be changed.");
             Assert.IsTrue(change.HasChange(e => e.DateTimeValue), "DateTime value should be changed.");
@@ -585,8 +585,8 @@ namespace ChangeDetector.Tests
             Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
             Assert.AreEqual(EntityState.Modified, change.State, "The entity should have been modified.");
 
-            Assert.AreEqual(1, change.PropertyChanges.Count(), "The wrong number of properties were seen as changed.");
-            var propertyChange = change.PropertyChanges.Single();
+            Assert.AreEqual(1, change.GetChanges().Count(), "The wrong number of properties were seen as changed.");
+            var propertyChange = change.GetChanges().Single();
             Assert.AreEqual(DerivedChangeDetector.DerivedDescription, propertyChange.DisplayName, "The wrong property was recorded.");
 
             bool hasChange = change.As<DerivedEntity>().HasChange(x => x.DerivedValue);
@@ -611,8 +611,8 @@ namespace ChangeDetector.Tests
             Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
             Assert.AreEqual(EntityState.Modified, change.State, "The entity should have been modified.");
 
-            Assert.AreEqual(1, change.PropertyChanges.Count(), "The wrong number of properties were seen as changed.");
-            var propertyChange = change.PropertyChanges.Single();
+            Assert.AreEqual(1, change.GetChanges().Count(), "The wrong number of properties were seen as changed.");
+            var propertyChange = change.GetChanges().Single();
             Assert.AreEqual(TestEntityChangeDetector.IntDescription, propertyChange.DisplayName, "The wrong property was recorded.");
 
             bool hasBaseChange = change.HasChange(x => x.IntValue);
@@ -637,7 +637,7 @@ namespace ChangeDetector.Tests
             EntityChange<TestEntity> change = changes.Single();
             Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
             Assert.AreEqual(EntityState.Added, change.State, "The entity should have been modified.");
-            Assert.AreEqual(1, change.PropertyChanges.Count(), "The wrong number of properties were seen as changed.");
+            Assert.AreEqual(1, change.GetChanges().Count(), "The wrong number of properties were seen as changed.");
         }
 
         [TestMethod]
@@ -656,7 +656,7 @@ namespace ChangeDetector.Tests
             EntityChange<TestEntity> change = changes.Single();
             Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
             Assert.AreEqual(EntityState.Removed, change.State, "The entity should have been modified.");
-            Assert.AreEqual(1, change.PropertyChanges.Count(), "The wrong number of properties were seen as changed.");
+            Assert.AreEqual(1, change.GetChanges().Count(), "The wrong number of properties were seen as changed.");
         }
 
         public class DerivedEntity : TestEntity
@@ -692,7 +692,7 @@ namespace ChangeDetector.Tests
             EntityChange<TestEntity> change = changes.Single();
             Assert.AreSame(entity, change.Entity, "A change was detected on the wrong entity.");
             Assert.AreEqual(EntityState.Modified, change.State, "The entity should have been modified.");
-            Assert.AreEqual(1, change.PropertyChanges.Count(), "The wrong number of properties were seen as changed.");
+            Assert.AreEqual(1, change.GetChanges().Count(), "The wrong number of properties were seen as changed.");
         }
 
         public class DoubleDerivedEntity : DerivedEntity
