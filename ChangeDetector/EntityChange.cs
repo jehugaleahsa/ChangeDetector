@@ -13,9 +13,9 @@ namespace ChangeDetector
 
         public EntityState State { get; internal set; }
 
-        public IEnumerable<IFieldChange> FieldChanges { get; internal set; }
+        public IEnumerable<IPropertyChange> PropertyChanges { get; internal set; }
 
-        public IFieldChange GetChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
+        public IPropertyChange GetChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
         {
             return getChange<TProp>(accessor);
         }
@@ -25,14 +25,14 @@ namespace ChangeDetector
             return getChange(accessor) != null;
         }
 
-        private IFieldChange getChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
+        private IPropertyChange getChange<TProp>(Expression<Func<TEntity, TProp>> accessor)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
             if (property == null)
             {
                 return null;
             }
-            return FieldChanges.Where(c => c.Property == property).SingleOrDefault();
+            return PropertyChanges.Where(c => c.Property == property).SingleOrDefault();
         }
 
         public EntityChange<TDerived> As<TDerived>()
@@ -41,7 +41,7 @@ namespace ChangeDetector
             EntityChange<TDerived> change = new EntityChange<TDerived>();
             change.Entity = Entity as TDerived;
             change.State = State;
-            change.FieldChanges = FieldChanges;
+            change.PropertyChanges = PropertyChanges;
             return change;
         }
     }

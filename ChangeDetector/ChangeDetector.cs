@@ -56,7 +56,7 @@ namespace ChangeDetector
             properties[propertyInfo] = property;
         }
 
-        public IEnumerable<IFieldChange> GetChanges(Snapshot original, Snapshot updated)
+        public IEnumerable<IPropertyChange> GetChanges(Snapshot original, Snapshot updated)
         {
             var propertyChanges = from property in properties.Values
                                   let change = property.GetChange(original, updated)
@@ -70,19 +70,19 @@ namespace ChangeDetector
             return getChange(propertyInfo, original, updated) != null;
         }
 
-        public IFieldChange GetChange(PropertyInfo propertyInfo, Snapshot original, Snapshot updated)
+        public IPropertyChange GetChange(PropertyInfo propertyInfo, Snapshot original, Snapshot updated)
         {
             return getChange(propertyInfo, original, updated);
         }
 
-        private IFieldChange getChange(PropertyInfo propertyInfo, Snapshot original, Snapshot updated)
+        private IPropertyChange getChange(PropertyInfo propertyInfo, Snapshot original, Snapshot updated)
         {
             if (propertyInfo == null || !properties.ContainsKey(propertyInfo))
             {
                 return null;
             }
             var propertyDetector = properties[propertyInfo];
-            IFieldChange change = propertyDetector.GetChange(original, updated);
+            IPropertyChange change = propertyDetector.GetChange(original, updated);
             return change;
         }
 

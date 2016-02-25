@@ -45,7 +45,7 @@
     <Compile Include="EntityChangeTracker.cs" />
     <Compile Include="EntityConfiguration.cs" />
     <Compile Include="EntityState.cs" />
-    <Compile Include="FieldChange.cs" />
+    <Compile Include="PropertyChange.cs" />
     <Compile Include="Formatters.cs" />
     <Compile Include="DerivedEntityChangeDetector.cs" />
     <Compile Include="IDerivedEntityConfiguration.cs" />

@@ -11,7 +11,7 @@ namespace ChangeDetector
     {
         bool HasChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated);
 
-        IFieldChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated);
+        IPropertyChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated);
     }
 
     internal class DerivedEntityChangeDetector<TBase, TDerived> : IDerivedEntityChangeDetector<TBase, TDerived>
@@ -31,7 +31,7 @@ namespace ChangeDetector
             return new DerivedEntityChangeDetector<TDerived, TSuccessor>(detector);
         }
 
-        public IEnumerable<IFieldChange> GetChanges(TDerived original, TDerived updated)
+        public IEnumerable<IPropertyChange> GetChanges(TDerived original, TDerived updated)
         {
             Snapshot originalSnapshot = detector.TakeSnapshot(original);
             Snapshot updatedSnapshot = detector.TakeSnapshot(updated);
@@ -54,7 +54,7 @@ namespace ChangeDetector
             return detector.HasChange(property, originalSnapshot, updatedSnapshot);
         }
 
-        public IFieldChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated)
+        public IPropertyChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TBase original, TBase updated)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
             Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
@@ -62,7 +62,7 @@ namespace ChangeDetector
             return detector.GetChange(property, originalSnapshot, updatedSnapshot);
         }
 
-        public IFieldChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TDerived original, TDerived updated)
+        public IPropertyChange GetChange<TProp>(Expression<Func<TDerived, TProp>> accessor, TDerived original, TDerived updated)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
             Snapshot originalSnapshot = detector.TakeSnapshot(original, property);

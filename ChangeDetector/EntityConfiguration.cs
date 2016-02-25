@@ -60,14 +60,14 @@ namespace ChangeDetector
             return new DerivedEntityChangeDetector<TEntity, TDerived>(detector);
         }
 
-        public IEnumerable<IFieldChange> GetChanges(TEntity original, TEntity updated)
+        public IEnumerable<IPropertyChange> GetChanges(TEntity original, TEntity updated)
         {
             var originalSnapshot = detector.TakeSnapshot(original);
             var updatedSnapshot = detector.TakeSnapshot(updated);
             return detector.GetChanges(originalSnapshot, updatedSnapshot);
         }
 
-        public IFieldChange GetChange<TProp>(Expression<Func<TEntity, TProp>> accessor, TEntity original, TEntity updated)
+        public IPropertyChange GetChange<TProp>(Expression<Func<TEntity, TProp>> accessor, TEntity original, TEntity updated)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
             Snapshot originalSnapshot = detector.TakeSnapshot(original, property);
@@ -108,7 +108,7 @@ namespace ChangeDetector
             return detector.TakeSnapshot(entity);
         }
 
-        internal IEnumerable<IFieldChange> GetChanges(Snapshot original, Snapshot updated)
+        internal IEnumerable<IPropertyChange> GetChanges(Snapshot original, Snapshot updated)
         {
             return detector.GetChanges(original, updated);
         }

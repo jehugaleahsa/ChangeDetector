@@ -54,13 +54,13 @@ namespace ChangeDetector.Tests
             TestEntity original = null;
             TestEntity updated = new TestEntity() { StringValue = "After" };
 
-            Assert.IsTrue(detector.HasChange(a => a.StringValue, original, updated), "No change detected for the field.");
+            Assert.IsTrue(detector.HasChange(a => a.StringValue, original, updated), "No change detected for the property.");
 
             var changes = detector.GetChanges(original, updated);
 
             Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
-            IFieldChange change = changes.Single();
-            Assert.AreEqual(TestEntityChangeDetector.StringDescription, change.FieldName, "The wrong field was recorded.");
+            IPropertyChange change = changes.Single();
+            Assert.AreEqual(TestEntityChangeDetector.StringDescription, change.DisplayName, "The wrong property was recorded.");
             Assert.AreEqual(null, change.FormatOriginalValue(), "The old value was not recorded.");
             Assert.AreEqual(Formatters.FormatString(updated.StringValue), change.FormatUpdatedValue(), "The new value was not recorded.");
         }
@@ -73,13 +73,13 @@ namespace ChangeDetector.Tests
             TestEntity original = new TestEntity() { StringValue = "After" };
             TestEntity updated = null;
 
-            Assert.IsTrue(detector.HasChange(a => a.StringValue, original, updated), "No change detected for the field.");
+            Assert.IsTrue(detector.HasChange(a => a.StringValue, original, updated), "No change detected for the property.");
 
             var changes = detector.GetChanges(original, updated);
 
             Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
-            IFieldChange change = changes.Single();
-            Assert.AreEqual(TestEntityChangeDetector.StringDescription, change.FieldName, "The wrong field was recorded.");
+            IPropertyChange change = changes.Single();
+            Assert.AreEqual(TestEntityChangeDetector.StringDescription, change.DisplayName, "The wrong property was recorded.");
             Assert.AreEqual(Formatters.FormatString(original.StringValue), change.FormatOriginalValue(), "The old value was not recorded.");
             Assert.AreEqual(null, change.FormatUpdatedValue(), "The new value was not recorded.");
         }
@@ -92,7 +92,7 @@ namespace ChangeDetector.Tests
             TestEntity original = null;
             TestEntity updated = null;
 
-            Assert.IsFalse(detector.HasChange(a => a.StringValue, original, updated), "Change detected for the field.");
+            Assert.IsFalse(detector.HasChange(a => a.StringValue, original, updated), "Change detected for the property.");
 
             var changes = detector.GetChanges(original, updated);
 
@@ -218,8 +218,8 @@ namespace ChangeDetector.Tests
             var changes = detector.GetChanges(original, updated);
 
             Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
-            IFieldChange change = changes.Single();
-            Assert.AreEqual(DerivedChangeDetector.DerivedDescription, change.FieldName, "The wrong field was recorded.");
+            IPropertyChange change = changes.Single();
+            Assert.AreEqual(DerivedChangeDetector.DerivedDescription, change.DisplayName, "The wrong property was recorded.");
             Assert.AreEqual(Formatters.FormatInt32(original.DerivedValue), change.FormatOriginalValue(), "The old value was not recorded.");
             Assert.AreEqual(Formatters.FormatInt32(updated.DerivedValue), change.FormatUpdatedValue(), "The new value was not recorded.");
         }
@@ -287,8 +287,8 @@ namespace ChangeDetector.Tests
             var changes = detector.GetChanges(original, updated);
 
             Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
-            IFieldChange change = changes.Single();
-            Assert.AreEqual(DerivedChangeDetector.DerivedDescription, change.FieldName, "The wrong field was recorded.");
+            IPropertyChange change = changes.Single();
+            Assert.AreEqual(DerivedChangeDetector.DerivedDescription, change.DisplayName, "The wrong property was recorded.");
             Assert.AreEqual(null, change.FormatOriginalValue(), "The old value was not recorded.");
             Assert.AreEqual(Formatters.FormatInt32(updated.DerivedValue), change.FormatUpdatedValue(), "The new value was not recorded.");
         }
@@ -320,8 +320,8 @@ namespace ChangeDetector.Tests
             var changes = detector.GetChanges(original, updated);
 
             Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
-            IFieldChange change = changes.Single();
-            Assert.AreEqual(DoubleDerivedChangeDetector.DoubleDerivedDescription, change.FieldName, "The wrong field was recorded.");
+            IPropertyChange change = changes.Single();
+            Assert.AreEqual(DoubleDerivedChangeDetector.DoubleDerivedDescription, change.DisplayName, "The wrong property was recorded.");
             Assert.AreEqual(Formatters.FormatString(original.DoubleDerivedValue), change.FormatOriginalValue(), "The old value was not recorded.");
             Assert.AreEqual(Formatters.FormatString(updated.DoubleDerivedValue), change.FormatUpdatedValue(), "The new value was not recorded.");
         }

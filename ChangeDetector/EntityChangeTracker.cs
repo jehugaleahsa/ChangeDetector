@@ -152,7 +152,7 @@ namespace ChangeDetector
                 else if (context.State == EntityState.Unmodified && (state.HasFlag(EntityState.Modified) || state.HasFlag(EntityState.Unmodified)))
                 {
                     EntityChange<TEntity> change = getEntityChange(context);
-                    if (change.FieldChanges.Any())
+                    if (change.PropertyChanges.Any())
                     {
                         if (state.HasFlag(EntityState.Modified))
                         {
@@ -189,22 +189,22 @@ namespace ChangeDetector
                 EntityChange<TEntity> change = new EntityChange<TEntity>();
                 change.Entity = entity;
                 change.State = EntityState.Detached;
-                change.FieldChanges = new IFieldChange[0];
+                change.PropertyChanges = new IPropertyChange[0];
                 return change;
             }
         }
 
         private EntityChange<TEntity> getEntityChange(Entity<TEntity> context)
         {
-            var fieldChanges = getFieldChanges(context);
+            var propertyChanges = getPropertyChanges(context);
             EntityChange<TEntity> change = new EntityChange<TEntity>();
             change.Entity = context.Instance;
-            change.State = getState(context.State, fieldChanges);
-            change.FieldChanges = fieldChanges;
+            change.State = getState(context.State, propertyChanges);
+            change.PropertyChanges = propertyChanges;
             return change;
         }
 
-        private IEnumerable<IFieldChange> getFieldChanges(Entity<TEntity> context)
+        private IEnumerable<IPropertyChange> getPropertyChanges(Entity<TEntity> context)
         {
             if (context.State == EntityState.Added)
             {
@@ -219,16 +219,16 @@ namespace ChangeDetector
             else if (context.State == EntityState.Unmodified)
             {
                 var snapshot = configuration.TakeSnapshot(context.Instance);
-                var fieldChanges = configuration.GetChanges(context.Snapshot, snapshot);
-                return fieldChanges;
+                var changes = configuration.GetChanges(context.Snapshot, snapshot);
+                return changes;
             }
             else
             {
-                return new IFieldChange[0];
+                return new IPropertyChange[0];
             }
         }
 
-        private static EntityState getState(EntityState entityState, IEnumerable<IFieldChange> fieldChanges)
+        private static EntityState getState(EntityState entityState, IEnumerable<IPropertyChange> changes)
         {
             if (entityState == EntityState.Added)
             {
@@ -240,7 +240,7 @@ namespace ChangeDetector
             }
             else if (entityState == EntityState.Unmodified)
             {
-                if (fieldChanges.Any())
+                if (changes.Any())
                 {
                     return EntityState.Modified;
                 }

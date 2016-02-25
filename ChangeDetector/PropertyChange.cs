@@ -3,11 +3,11 @@ using System.Reflection;
 
 namespace ChangeDetector
 {
-    public interface IFieldChange
+    public interface IPropertyChange
     {
         PropertyInfo Property { get; }
 
-        string FieldName { get; }
+        string DisplayName { get; }
 
         object OriginalValue { get; }
 
@@ -18,14 +18,14 @@ namespace ChangeDetector
         string FormatUpdatedValue();
     }
 
-    [DebuggerDisplay("{FieldName,nq}: {FormatOriginalValue(),nq} -> {FormatUpdatedValue(),nq}")]
-    internal class FieldChange<TProp> : IFieldChange
+    [DebuggerDisplay("{DisplayName,nq}: {FormatOriginalValue(),nq} -> {FormatUpdatedValue(),nq}")]
+    internal class PropertyChange<TProp> : IPropertyChange
     {
         private readonly PropertyConfiguration<TProp> configuration;
         private readonly SnapshotValue original;
         private readonly SnapshotValue updated;
 
-        public FieldChange(PropertyConfiguration<TProp> configuration, SnapshotValue original, SnapshotValue updated)
+        public PropertyChange(PropertyConfiguration<TProp> configuration, SnapshotValue original, SnapshotValue updated)
         {
             this.configuration = configuration;
             this.original = original;
@@ -37,7 +37,7 @@ namespace ChangeDetector
             get { return configuration.Property; }
         }
 
-        public string FieldName
+        public string DisplayName
         {
             get { return configuration.DisplayName; }
         }

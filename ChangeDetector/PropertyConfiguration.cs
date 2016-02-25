@@ -12,7 +12,7 @@ namespace ChangeDetector
 
         Snapshot TakeSingletonSnapshot(object entity);
 
-        IFieldChange GetChange(Snapshot original, Snapshot updated);
+        IPropertyChange GetChange(Snapshot original, Snapshot updated);
 
         bool IsValueSource(object entity);
 
@@ -55,7 +55,7 @@ namespace ChangeDetector
             return Property.GetValue(entity);
         }
 
-        public abstract IFieldChange GetChange(Snapshot original, Snapshot updated);
+        public abstract IPropertyChange GetChange(Snapshot original, Snapshot updated);
     }
 
     internal class PropertyConfiguration<TProp> : PropertyConfiguration
@@ -71,7 +71,7 @@ namespace ChangeDetector
 
         public IEqualityComparer<TProp> Comparer { get; private set; }
 
-        public override IFieldChange GetChange(Snapshot original, Snapshot updated)
+        public override IPropertyChange GetChange(Snapshot original, Snapshot updated)
         {
             SnapshotValue originalValue = original.GetValue(Property);
             SnapshotValue updatedValue = updated.GetValue(Property);
@@ -86,7 +86,7 @@ namespace ChangeDetector
             // If both values have values, we need to compare them to see if they changed.
             if (originalValue.IsNull() != updatedValue.IsNull() || !Comparer.Equals(originalValue.GetValue<TProp>(), updatedValue.GetValue<TProp>()))
             {
-                return new FieldChange<TProp>(this, originalValue, updatedValue);
+                return new PropertyChange<TProp>(this, originalValue, updatedValue);
             }
 
             return null;
