@@ -23,7 +23,7 @@ In order to track changes, you must create an `EntityConfiguration` for each ent
         }
     }
     
-Within the constructor, you call `Add` for each property you wish to track. The first argument to `Add` is a lambda to get at the property you're tracking. The next argument is the human-friendly name you want to give the column. The third argument is a delegate to convert the value to a human-friendly string. The `Formatters` static class provides formatters for common values. There is also a fourth `IEqualityComparer` argument, in cases where you are not working with simply types. Only the first argument is required; by default the display name will default to the property name and the formatter will simply call `ToString()`. 
+Within the constructor, you call `Add` for each property you wish to track. The first argument to `Add` is a lambda to get at the property you're tracking. The next argument is the human-friendly name you want to give the column. The third argument is a delegate to convert the value to a human-friendly string. The `Formatters` static class provides formatters for common values. There is also a fourth `IEqualityComparer` argument, in cases where you are not working with simple types. Only the first argument is required; by default the display name will default to the property name and the formatter will simply call `ToString()`. 
 
 ## Detecting Changes
 If all you want to do is compare two objects, you can work with the `EntityConfiguration` directly. You can get the list of changes for two objects by calling `GetChanges`.
