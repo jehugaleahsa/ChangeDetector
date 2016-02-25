@@ -154,13 +154,13 @@ namespace ChangeDetector.Tests
 
             public TestEntityChangeDetector()
             {
-                Add(StringDescription, e => e.StringValue, Formatters.FormatString);
-                Add(DateTimeDescription, e => e.DateTimeValue, Formatters.FormatDateTime);
-                Add(MoneyDescription, e => e.MoneyValue, Formatters.FormatMoney);
-                Add(IntDescription, e => e.IntValue, Formatters.FormatInt32);
-                Add(BooleanDescription, e => e.BooleanValue, Formatters.FormatBoolean);
-                Add(PercentDescription, e => e.PercentValue, Formatters.FormatPercent);
-                Add(GuidDescription, e => e.GuidValue, Formatters.FormatGuid);
+                Add(e => e.StringValue, StringDescription, Formatters.FormatString);
+                Add(e => e.DateTimeValue, DateTimeDescription, Formatters.FormatDateTime);
+                Add(e => e.MoneyValue, MoneyDescription, Formatters.FormatMoney);
+                Add(e => e.IntValue, IntDescription, Formatters.FormatInt32);
+                Add(e => e.BooleanValue, BooleanDescription, Formatters.FormatBoolean);
+                Add(e => e.PercentValue, PercentDescription, Formatters.FormatPercent);
+                Add(e => e.GuidValue, GuidDescription, Formatters.FormatGuid);
             }
         }
 
@@ -268,7 +268,7 @@ namespace ChangeDetector.Tests
             public DerivedChangeDetector()
             {
                 When<DerivedEntity>()
-                    .Add(DerivedDescription, e => e.DerivedValue, Formatters.FormatInt32);
+                    .Add(e => e.DerivedValue, DerivedDescription, Formatters.FormatInt32);
             }
         }
 
@@ -304,7 +304,7 @@ namespace ChangeDetector.Tests
             public DoubleDerivedChangeDetector()
             {
                 When<DoubleDerivedEntity>()
-                    .Add(DoubleDerivedDescription, x => x.DoubleDerivedValue, Formatters.FormatString);
+                    .Add(x => x.DoubleDerivedValue, DoubleDerivedDescription, Formatters.FormatString);
             }
         }
     }

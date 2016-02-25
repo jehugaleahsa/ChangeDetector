@@ -19,9 +19,27 @@ namespace ChangeDetector
             this.derivedConfiguration = new EntityConfiguration<TDerived>();
         }
 
-        public IDerivedEntityConfiguration<TDerived> Add<TProp>(string displayName, Expression<Func<TDerived, TProp>> accessor, Func<TProp, string> formatter)
+        public IDerivedEntityConfiguration<TDerived> Add<TProp>(Expression<Func<TDerived, TProp>> accessor, IEqualityComparer<TProp> comparer = null)
         {
-            derivedConfiguration.Add(displayName, accessor, formatter);
+            derivedConfiguration.Add(accessor, comparer);
+            return this;
+        }
+
+        public IDerivedEntityConfiguration<TDerived> Add<TProp>(Expression<Func<TDerived, TProp>> accessor, string displayName, IEqualityComparer<TProp> comparer = null)
+        {
+            derivedConfiguration.Add(accessor, displayName, comparer);
+            return this;
+        }
+
+        public IDerivedEntityConfiguration<TDerived> Add<TProp>(Expression<Func<TDerived, TProp>> accessor, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer = null)
+        {
+            derivedConfiguration.Add(accessor, formatter, comparer);
+            return this;
+        }
+
+        public IDerivedEntityConfiguration<TDerived> Add<TProp>(Expression<Func<TDerived, TProp>> accessor, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer = null)
+        {
+            derivedConfiguration.Add(accessor, displayName, formatter, comparer);
             return this;
         }
 

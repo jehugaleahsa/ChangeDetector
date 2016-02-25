@@ -18,20 +18,67 @@ namespace ChangeDetector
             relationships = new Dictionary<Type, IRelatedEntity>();
         }
 
-        protected internal EntityConfiguration<TEntity> Add<TProp>(string displayName, Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter)
+        protected internal EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, IEqualityComparer<TProp> comparer = null)
         {
-            return Add<TProp>(displayName, accessor, formatter, null);
+            if (accessor == null)
+            {
+                throw new ArgumentNullException("accessor");
+            }
+            if (comparer == null)
+            {
+                comparer = EqualityComparer<TProp>.Default;
+            }
+            var propertyInfo = GetProperty(accessor);
+            Func<TProp, string> formatter = p => p == null ? null : p.ToString();
+            return add<TProp>(propertyInfo, propertyInfo.Name, formatter, comparer);
         }
 
-        protected internal EntityConfiguration<TEntity> Add<TProp>(string displayName, Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+        protected internal EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, string displayName, IEqualityComparer<TProp> comparer = null)
         {
             if (String.IsNullOrWhiteSpace(displayName))
             {
-                throw new ArgumentException("The property display name cannot be blank.", "displayName");
+                throw new ArgumentException("The display name cannot be blank.", "displayName");
             }
             if (accessor == null)
             {
+                throw new ArgumentNullException("accessor");
+            }
+            if (comparer == null)
+            {
+                comparer = EqualityComparer<TProp>.Default;
+            }
+            var propertyInfo = GetProperty(accessor);
+            Func<TProp, string> formatter = p => p == null ? null : p.ToString();
+            return add<TProp>(propertyInfo, displayName, formatter, comparer);
+        }
+
+        protected internal EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer = null)
+        {
+            if (accessor == null)
+            {
+                throw new ArgumentNullException("accessor");
+            }
+            if (formatter == null)
+            {
+                throw new ArgumentNullException("formatter");
+            }
+            if (comparer == null)
+            {
+                comparer = EqualityComparer<TProp>.Default;
+            }
+            var propertyInfo = GetProperty(accessor);
+            return add<TProp>(propertyInfo, propertyInfo.Name, formatter, comparer);
+        }
+
+        protected internal EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer = null)
+        {
+            if (accessor == null)
+            {
                 throw new ArgumentNullException("accessor", "The property accessor cannot be null.");
+            }
+            if (String.IsNullOrWhiteSpace(displayName))
+            {
+                throw new ArgumentException("The property display name cannot be blank.", "displayName");
             }
             if (formatter == null)
             {
@@ -41,7 +88,12 @@ namespace ChangeDetector
             {
                 comparer = EqualityComparer<TProp>.Default;
             }
-            var propertyInfo = GetProperty(accessor);
+            var propertyInfo = GetProperty<TProp>(accessor);
+            return add<TProp>(propertyInfo, displayName, formatter, comparer);
+        }
+
+        private EntityConfiguration<TEntity> add<TProp>(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+        {
             var property = new PropertyConfiguration<TEntity, TProp>(displayName, propertyInfo, formatter, comparer);
             properties[propertyInfo] = property;
             return this;
