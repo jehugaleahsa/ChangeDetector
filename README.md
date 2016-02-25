@@ -46,9 +46,30 @@ The `IFieldChange` interface has the following members:
 * FormatOriginalValue - A method to get the formatted value of the first entity, using the supplied formatter.
 * FormatUpdatedValue - A method to get the formatted value of the second entity, using the supplied formatter.
 
-`OriginalValue` and `UpdatedValue` are `object`s. If the property could not be found in an entity, it is given the value of `null`, even for primitive properties. Be sure to check for `null`s if you plan to work with these properties. The `Format*` methods will account for `null`s on your behalf. 
+`OriginalValue` and `UpdatedValue` are `object`s. If the property could not be found in an entity, it is set to `null`, even for primitive properties. Be sure to check for `null`s if you plan to work directly with these properties. The `Format*` methods will account for `null`s on your behalf. 
 
 ## Change Tracker
+Most of the time, you will want to track the state of a single object throughout it's lifetime. The `EntityChangeTracker` class provides methods to register a object and later ask what changed. The `EntityChangeTracker` constructor takes an `EntityConfiguration` -- this tells the tracker how to detect changes to the objects it manages. As soon as your entity comes into life, register it with the tracker using the `Attach` method. At the end of your code, you can simply ask the tracker for the status of the entity.
+
+    TestEntityChangeDetector detector = new TestEntityChangeDetector();
+    EntityChangeTracker tracker = new EntityChangeTracker(detector);
+    TestEntity entity = new TestEntity() { IntValue = 123 };
+    tracker.Attach(entity);
+    // ... some business logic here ...
+    EntityChange<TestEntity> changes = tracker.DetectChanges(entity);
+    tracker.CommitChanges();
+    
+The `EntityChange` class gives a summary of what changed on the entity. It has the following members:
+* Entity - The object that was being tracked
+* State - Says whether the object is Unmodified, Modified, Added, Removed or Detached.
+* FieldChanges - The individual properties that were changed.
+* GetChange - Gets the `IFieldChange` for a property, or `null` if the property isn't changed or tracked.
+* HasChange - Determines whether there was a change for a property.
+* As<TDerived> - Makes it easier to detect changes on sub-classes (see below)
+
+There are three overloads of `DetectChanges`. The first takes no arguments and returns an `EntityChange` for each entity that was modified, added or removed. If you only want to get back entities with certain states or include unmodified entities, you can use the second overload that accepts an `EntityState` flag enum. Finally, you can retrieve the state of a single entity using the third overload. If the entity is not being tracked, its state will be detached.
+
+Once you have finished processing the changes, you can commit the changes to the tracker, via `CommitChanges`. This will ensure the next time you call `DetectChanges` you will not get the same changes back again. Modified and added entities will become unmodified and removed entities will not longer be tracked.
 
 ## Inheritance
 If your entity can have multiple derived classes, you can specify how to detect changes whenever the entity is of that type, using the `When<TDerived>` method.
