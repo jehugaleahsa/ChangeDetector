@@ -24,15 +24,11 @@ namespace ChangeDetector
 
         public ElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated, ElementState state)
         {
-            if (original == null)
-            {
-                original = new TElement[0];
-            }
+            HashSet<TElement> source = toHashSet(original);
             if (updated == null)
             {
                 updated = new TElement[0];
             }
-            HashSet<TElement> source = toHashSet(original);
             HashSet<TElement> unmodified = new HashSet<TElement>(comparer);
             HashSet<TElement> added = new HashSet<TElement>(comparer);
             foreach (TElement element in updated)
@@ -63,6 +59,10 @@ namespace ChangeDetector
 
         private HashSet<TElement> toHashSet(ICollection<TElement> collection)
         {
+            if (collection == null)
+            {
+                return new HashSet<TElement>(comparer);
+            }
             HashSet<TElement> set = collection as HashSet<TElement>;
             if (set == null || set.Comparer != comparer)
             {
