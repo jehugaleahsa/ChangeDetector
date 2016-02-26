@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="ChangeDetectionTester.cs" />
     <Compile Include="ChangeTrackingTester.cs" />
+    <Compile Include="CollectionChangeDetectionTester.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

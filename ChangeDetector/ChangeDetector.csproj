@@ -40,6 +40,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeDetector.cs" />
+    <Compile Include="CollectionChangeDetector.cs" />
+    <Compile Include="ElementChange.cs" />
+    <Compile Include="ElementChangeCollection.cs" />
+    <Compile Include="ElementState.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="EntityChange.cs" />
     <Compile Include="EntityChangeTracker.cs" />
