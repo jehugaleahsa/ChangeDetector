@@ -48,6 +48,20 @@ namespace ChangeDetector
             return this;
         }
 
+        protected EntityConfiguration<TEntity> AddCollection<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, IEqualityComparer<TElement> comparer = null)
+        {
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
+            detector.AddCollection(property, null, comparer);
+            return this;
+        }
+
+        protected EntityConfiguration<TEntity> AddCollection<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, string displayName, IEqualityComparer<TElement> comparer = null)
+        {
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
+            detector.AddCollection(property, displayName, comparer);
+            return this;
+        }
+
         protected IDerivedEntityConfiguration<TDerived> When<TDerived>()
             where TDerived : class, TEntity
         {
@@ -103,6 +117,16 @@ namespace ChangeDetector
             return Add(accessor, displayName, formatter, comparer);
         }
 
+        IDerivedEntityConfiguration<TEntity> IDerivedEntityConfiguration<TEntity>.AddCollection<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, IEqualityComparer<TElement> comparer)
+        {
+            return AddCollection(accessor, comparer);
+        }
+
+        IDerivedEntityConfiguration<TEntity> IDerivedEntityConfiguration<TEntity>.AddCollection<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, string displayName, IEqualityComparer<TElement> comparer)
+        {
+            return AddCollection(accessor, displayName, comparer);
+        }
+
         internal Snapshot TakeSnapshot(object entity)
         {
             return detector.TakeSnapshot(entity);
@@ -111,6 +135,17 @@ namespace ChangeDetector
         internal IEnumerable<IPropertyChange> GetChanges(Snapshot original, Snapshot updated)
         {
             return detector.GetChanges(original, updated);
+        }
+
+        internal CollectionSnapshotLookup TakeCollectionSnapshots(object entity)
+        {
+            return detector.TakeCollectionSnapshots(entity);
+        }
+
+        internal CollectionChange<TElement> GetCollectionChanges<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, CollectionSnapshotLookup original, TEntity updated, ElementState state)
+        {
+            PropertyInfo property = ChangeDetector.GetProperty(accessor);
+            return detector.GetCollectionChanges<TElement>(property, original, updated, state);
         }
     }
 }

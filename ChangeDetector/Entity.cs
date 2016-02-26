@@ -12,5 +12,7 @@ namespace ChangeDetector
         public EntityState State { get; set; }
 
         public Snapshot Snapshot { get; set; }
+
+        public CollectionSnapshotLookup CollectionSnapshots { get; set; }
     }
 }

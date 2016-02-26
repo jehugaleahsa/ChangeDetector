@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -708,6 +709,71 @@ namespace ChangeDetector.Tests
             {
                 When<DoubleDerivedEntity>()
                     .Add(x => x.DoubleDerivedValue, DoubleDerivedDescription, Formatters.FormatString);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectModifiedRecordsInCollection()
+        {
+            CollectionEntityConfiguration config = new CollectionEntityConfiguration();
+            EntityChangeTracker<CollectionEntity> tracker = new EntityChangeTracker<CollectionEntity>(config);
+            CollectionEntity entity = new CollectionEntity()
+            {
+                Values = new List<int>() { 1, 2, 3 }
+            };
+            tracker.Attach(entity);
+
+            entity.Values.Remove(1);
+            entity.Values.Add(4);
+
+            var additionDetails = tracker.DetectCollectionChanges(entity, x => x.Values, ElementState.Added);
+            var additions = additionDetails.GetChanges();
+            Assert.AreEqual(1, additions.Count, "Only one addition to the collection should have been detected.");
+            var addition = additions.Single();
+            Assert.AreEqual(4, addition.Item, "The wrong value was detected as changed.");
+            Assert.AreEqual(ElementState.Added, addition.State, "The item should have been added.");
+
+            var removalDetails = tracker.DetectCollectionChanges(entity, x => x.Values, ElementState.Removed);
+            var removals = removalDetails.GetChanges();
+            Assert.AreEqual(1, removals.Count, "Only one removal from the collection should have been detected.");
+            var removal = removals.Single();
+            Assert.AreEqual(1, removal.Item, "The wrong value was detected as changed.");
+            Assert.AreEqual(ElementState.Removed, removal.State, "The item should have been removed.");
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldTreatNullCollectionsAsEmpty()
+        {
+            CollectionEntityConfiguration config = new CollectionEntityConfiguration();
+            EntityChangeTracker<CollectionEntity> tracker = new EntityChangeTracker<CollectionEntity>(config);
+            CollectionEntity entity = new CollectionEntity()
+            {
+                Values = null
+            };
+            tracker.Attach(entity);
+
+            entity.Values = new List<int>() { 4 };
+
+            var additionDetails = tracker.DetectCollectionChanges(entity, x => x.Values, ElementState.Added);
+            var additions = additionDetails.GetChanges();
+            Assert.AreEqual(1, additions.Count, "Only one addition to the collection should have been detected.");
+            var addition = additions.Single();
+            Assert.AreEqual(4, addition.Item, "The wrong value was detected as changed.");
+            Assert.AreEqual(ElementState.Added, addition.State, "The item should have been added.");
+        }
+
+        public class CollectionEntity
+        {
+            public List<int> Values { get; set; }
+        }
+
+        public class CollectionEntityConfiguration : EntityConfiguration<CollectionEntity>
+        {
+            public CollectionEntityConfiguration()
+            {
+                AddCollection(x => x.Values);
             }
         }
     }

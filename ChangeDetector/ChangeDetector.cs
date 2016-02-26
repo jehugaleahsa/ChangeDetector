@@ -9,10 +9,12 @@ namespace ChangeDetector
     internal class ChangeDetector
     {
         private readonly Dictionary<PropertyInfo, IPropertyConfiguration> properties;
+        private readonly Dictionary<PropertyInfo, ICollectionConfiguration> collections;
 
         public ChangeDetector()
         {
             this.properties = new Dictionary<PropertyInfo, IPropertyConfiguration>();
+            this.collections = new Dictionary<PropertyInfo, ICollectionConfiguration>();
         }
 
         public static PropertyInfo GetProperty<TEntity, TProp>(Expression<Func<TEntity, TProp>> accessor)
@@ -54,6 +56,19 @@ namespace ChangeDetector
             }
             var property = new PropertyConfiguration<TProp>(propertyInfo, displayName, formatter, comparer);
             properties[propertyInfo] = property;
+        }
+
+        public void AddCollection<TElement>(PropertyInfo propertyInfo, string displayName, IEqualityComparer<TElement> comparer)
+        {
+            if (displayName == null)
+            {
+                displayName = propertyInfo.Name;
+            }
+            if (comparer == null)
+            {
+                comparer = EqualityComparer<TElement>.Default;
+            }
+            collections.Add(propertyInfo, new CollectionConfiguration<TElement>(propertyInfo, displayName, comparer));
         }
 
         public IEnumerable<IPropertyChange> GetChanges(Snapshot original, Snapshot updated)
@@ -111,6 +126,35 @@ namespace ChangeDetector
             }
             var configuration = properties[property];
             return configuration.TakeSingletonSnapshot(entity);
+        }
+
+        public CollectionSnapshotLookup TakeCollectionSnapshots(object entity)
+        {
+            CollectionSnapshotLookup snapshots = new CollectionSnapshotLookup();
+            foreach (var configuration in collections.Values)
+            {
+                if (configuration.IsValueSource(entity))
+                {
+                    object collection = configuration.GetCollectionCopy(entity);
+                    snapshots.Add(configuration.Property, collection);
+                }
+            }
+            return snapshots;
+        }
+
+        public CollectionChange<TElement> GetCollectionChanges<TElement>(PropertyInfo property, CollectionSnapshotLookup original, object updated, ElementState state)
+        {
+            ICollectionConfiguration configuration;
+            if (!collections.TryGetValue(property, out configuration))
+            {
+                return null;
+            }
+            var typedConfiguration = (CollectionConfiguration<TElement>)configuration;
+            var originalCollection = original.GetSnapshot<TElement>(property);
+            var updatedCollection = typedConfiguration.GetCollection(updated);
+            CollectionChangeDetector<TElement> detector = new CollectionChangeDetector<TElement>(typedConfiguration.Comparer);
+            var changeCollection = detector.GetChanges(originalCollection, updatedCollection, state);
+            return new CollectionChange<TElement>(property, typedConfiguration.DiplayName, changeCollection);
         }
     }
 }

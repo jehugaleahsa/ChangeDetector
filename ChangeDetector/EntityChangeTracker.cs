@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace ChangeDetector
 {
@@ -99,7 +100,7 @@ namespace ChangeDetector
             Entity<TEntity> context = new Entity<TEntity>();
             context.Instance = entity;
             context.State = state;
-            context.Snapshot = configuration.TakeSnapshot(entity);
+            refreshSnapshots(context);
             entityLookup.Add(entity, context);
         }
 
@@ -255,6 +256,27 @@ namespace ChangeDetector
             }
         }
 
+        public ICollectionChange<TElement> DetectCollectionChanges<TElement>(TEntity entity, Expression<Func<TEntity, ICollection<TElement>>> accessor)
+        {
+            Entity<TEntity> context;
+            if (!entityLookup.TryGetValue(entity, out context))
+            {
+                return null;
+            }
+            ElementState state = ElementState.Added | ElementState.Removed;
+            return configuration.GetCollectionChanges(accessor, context.CollectionSnapshots, context.Instance, state);
+        }
+
+        public ICollectionChange<TElement> DetectCollectionChanges<TElement>(TEntity entity, Expression<Func<TEntity, ICollection<TElement>>> accessor, ElementState state)
+        {
+            Entity<TEntity> context;
+            if (!entityLookup.TryGetValue(entity, out context))
+            {
+                return null;
+            }
+            return configuration.GetCollectionChanges(accessor, context.CollectionSnapshots, context.Instance, state);
+        }
+
         public void CommitChanges()
         {
             commitChanges(EntityState.Added | EntityState.Modified | EntityState.Removed);
@@ -273,11 +295,11 @@ namespace ChangeDetector
                 if (context.State == EntityState.Added && state.HasFlag(EntityState.Added))
                 {
                     context.State = EntityState.Unmodified;
-                    context.Snapshot = configuration.TakeSnapshot(context.Instance);
+                    refreshSnapshots(context);
                 }
                 else if (context.State == EntityState.Unmodified && (state.HasFlag(EntityState.Modified) || state.HasFlag(EntityState.Unmodified)))
                 {
-                    context.Snapshot = configuration.TakeSnapshot(context.Instance);
+                    refreshSnapshots(context);
                 }
                 else if (context.State == EntityState.Removed && state.HasFlag(EntityState.Removed))
                 {
@@ -304,16 +326,22 @@ namespace ChangeDetector
             if (context.State == EntityState.Added)
             {
                 context.State = EntityState.Unmodified;
-                context.Snapshot = configuration.TakeSnapshot(context.Instance);
+                refreshSnapshots(context);
             }
             else if (context.State == EntityState.Unmodified)
             {
-                context.Snapshot = configuration.TakeSnapshot(context.Instance);
+                refreshSnapshots(context);
             }
             else if (context.State == EntityState.Removed)
             {
                 entityLookup.Remove(entity);
             }
+        }
+
+        private void refreshSnapshots(Entity<TEntity> context)
+        {
+            context.Snapshot = configuration.TakeSnapshot(context.Instance);
+            context.CollectionSnapshots = configuration.TakeCollectionSnapshots(context.Instance);
         }
     }
 }

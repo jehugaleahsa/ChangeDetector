@@ -6,37 +6,38 @@ namespace ChangeDetector
 {
     public class CollectionChangeDetector<TElement>
     {
-        private readonly HashSet<TElement> collection;
+        private readonly IEqualityComparer<TElement> comparer;
 
-        public CollectionChangeDetector(IEnumerable<TElement> collection, IEqualityComparer<TElement> comparer = null)
+        public CollectionChangeDetector(IEqualityComparer<TElement> comparer = null)
         {
-            if (collection == null)
-            {
-                collection = new TElement[0];
-            }
             if (comparer == null)
             {
                 comparer = EqualityComparer<TElement>.Default;
             }
-            this.collection = new HashSet<TElement>(collection, comparer);
+            this.comparer = comparer;
         }
 
-        public ElementChangeCollection<TElement> GetChanges(IEnumerable<TElement> updated)
+        public ElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated)
         {
-            return GetChanges(updated, ElementState.Added | ElementState.Removed);
+            return GetChanges(original, updated, ElementState.Added | ElementState.Removed);
         }
 
-        public ElementChangeCollection<TElement> GetChanges(IEnumerable<TElement> updated, ElementState state)
+        public ElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated, ElementState state)
         {
+            if (original == null)
+            {
+                original = new TElement[0];
+            }
             if (updated == null)
             {
                 updated = new TElement[0];
             }
-            HashSet<TElement> unmodified = new HashSet<TElement>(collection.Comparer);
-            HashSet<TElement> added = new HashSet<TElement>(collection.Comparer);
+            HashSet<TElement> source = toHashSet(original);
+            HashSet<TElement> unmodified = new HashSet<TElement>(comparer);
+            HashSet<TElement> added = new HashSet<TElement>(comparer);
             foreach (TElement element in updated)
             {
-                if (collection.Contains(element))
+                if (source.Contains(element))
                 {
                     unmodified.Add(element);
                 }
@@ -45,8 +46,8 @@ namespace ChangeDetector
                     added.Add(element);
                 }
             }
-            HashSet<TElement> removed = new HashSet<TElement>(collection.Comparer);
-            foreach (TElement element in collection)
+            HashSet<TElement> removed = new HashSet<TElement>(comparer);
+            foreach (TElement element in source)
             {
                 if (!unmodified.Contains(element))
                 {
@@ -57,7 +58,17 @@ namespace ChangeDetector
             var addedChanges = getElementChanges(added, state, ElementState.Added);
             var removedChanges = getElementChanges(removed, state, ElementState.Removed);
             var changes = unmodifiedChanges.Concat(addedChanges).Concat(removedChanges);
-            return new ElementChangeCollection<TElement>(changes, collection.Comparer);
+            return new ElementChangeCollection<TElement>(changes, comparer);
+        }
+
+        private HashSet<TElement> toHashSet(ICollection<TElement> collection)
+        {
+            HashSet<TElement> set = collection as HashSet<TElement>;
+            if (set == null || set.Comparer != comparer)
+            {
+                return new HashSet<TElement>(collection, comparer);
+            }
+            return set;
         }
 
         private IEnumerable<ElementChange<TElement>> getElementChanges(HashSet<TElement> collection, ElementState filter, ElementState state)

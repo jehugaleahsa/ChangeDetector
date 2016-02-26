@@ -40,7 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeDetector.cs" />
+    <Compile Include="CollectionChange.cs" />
     <Compile Include="CollectionChangeDetector.cs" />
+    <Compile Include="CollectionSnapshotLookup.cs" />
     <Compile Include="ElementChange.cs" />
     <Compile Include="ElementChangeCollection.cs" />
     <Compile Include="ElementState.cs" />
@@ -49,6 +51,7 @@
     <Compile Include="EntityChangeTracker.cs" />
     <Compile Include="EntityConfiguration.cs" />
     <Compile Include="EntityState.cs" />
+    <Compile Include="CollectionConfiguration.cs" />
     <Compile Include="PropertyChange.cs" />
     <Compile Include="Formatters.cs" />
     <Compile Include="DerivedEntityChangeDetector.cs" />
