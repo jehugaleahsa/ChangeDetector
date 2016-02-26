@@ -62,7 +62,7 @@ Most of the time, you will want to track the state of a single object throughout
 The `EntityChange` class gives a summary of what changed on the entity. It has the following members:
 * Entity - The object that was being tracked
 * State - Says whether the object is `Unmodified`, `Modified`, `Added`, `Removed` or `Detached`.
-* PropertyChanges - The individual properties that were changed.
+* GetChanges - Gets the individual properties that were changed.
 * GetChange - Gets the `IPropertyChange` for a property, or `null` if the property isn't changed or tracked.
 * HasChange - Determines whether there was a change for a property.
 * As<TDerived> - Makes it easier to detect changes on sub-classes (see below)
