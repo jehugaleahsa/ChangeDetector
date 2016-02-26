@@ -108,7 +108,7 @@ There is also support for detecting changes between collections, via the `Collec
 
     CollectionChangeDetector<int> detector = new CollectionChangeDetector<int>();
     var changes = detector.GetChanges(new int[] { 1, 2, 3 }, new int[] { 2, 4 });
-    // Detects 1 and 3 are Removed and 4 is Added.
+    // Removed: 1, 3. Added: 4.
 
 If you have an entity with a collection property, you can track how that collection changes throughout the lifetime of the entity. When initializing the `EntityConfiguration`, call `AddCollection` to register the collection. You can then pass the configuration to an `EntityChangeTracker` and it will automatically track the related collection with the entity. When you want to see what has changed, call `DetectCollectionChanges` on the tracker. `DetectCollectionChanges` accepts the entity and a delegate to specify which collection you're checking. You can optionally specify whether you are looking for `Added` or `Removed` elements. Just like with entities, calling `CommitChanges` will prevent the same changes from being returned for the collection.
 
