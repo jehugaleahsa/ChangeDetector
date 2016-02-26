@@ -103,7 +103,7 @@ If you need to detect whether a property changed for a particular derived instan
 ## Nulls
 The change detector is smart enough to handle `null`s on your behalf. If one of the entities is `null`, the property values of the other entity are compared to `null`. If both entities are `null`, they are considered the equal. Be aware that `null`s will not be passed to the formatter, so you can't customize their format. However, you can simply check the result for `null` and replace it with a placeholder string.
 
-# Collection Detection
+## Collection Detection
 There is also support for detecting changes between collections, via the `CollectionChangeDetector`. This class will take two collections (`ICollection<TElement>`) and see what elements are added or removed. You can pass an optional `IEqualityComparer<TElement>` to the constructor if the element type is not a simple type. `CollectionChangeDetector` has a  `GetChanges` method that returns an `ElementChangeCollection`, which allows you to see which elements were `Added` or `Removed`. There is an overload of the `GetChanges` method to explicitly search for `Added`, `Removed` or `Unmodified` elements.
 
     CollectionChangeDetector<int> detector = new CollectionChangeDetector<int>();
