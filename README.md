@@ -103,12 +103,12 @@ If you need to detect whether a property changed for a particular derived instan
 ## Nulls
 The change detector is smart enough to handle `null`s on your behalf. If one of the entities is `null`, the property values of the other entity are compared to `null`. If both entities are `null`, they are considered the equal. Be aware that `null`s will not be passed to the formatter, so you can't customize their format. However, you can simply check the result for `null` and replace it with a placeholder string.
 
-# Collection Detection
+## Collection Detection
 There is also support for detecting changes between collections, via the `CollectionChangeDetector`. This class will take two collections (`ICollection<TElement>`) and see what elements are added or removed. You can pass an optional `IEqualityComparer<TElement>` to the constructor if the element type is not a simple type. `CollectionChangeDetector` has a  `GetChanges` method that returns an `ElementChangeCollection`, which allows you to see which elements were `Added` or `Removed`. There is an overload of the `GetChanges` method to explicitly search for `Added`, `Removed` or `Unmodified` elements.
 
     CollectionChangeDetector<int> detector = new CollectionChangeDetector<int>();
     var changes = detector.GetChanges(new int[] { 1, 2, 3 }, new int[] { 2, 4 });
-    // Detects 1 and 3 are Removed and 4 is Added.
+    // Removed: 1, 3. Added: 4.
 
 If you have an entity with a collection property, you can track how that collection changes throughout the lifetime of the entity. When initializing the `EntityConfiguration`, call `AddCollection` to register the collection. You can then pass the configuration to an `EntityChangeTracker` and it will automatically track the related collection with the entity. When you want to see what has changed, call `DetectCollectionChanges` on the tracker. `DetectCollectionChanges` accepts the entity and a delegate to specify which collection you're checking. You can optionally specify whether you are looking for `Added` or `Removed` elements. Just like with entities, calling `CommitChanges` will prevent the same changes from being returned for the collection.
 
