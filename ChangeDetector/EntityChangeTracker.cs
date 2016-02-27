@@ -190,6 +190,7 @@ namespace ChangeDetector
                 EntityChange<TEntity> change = new EntityChange<TEntity>(
                     entity, 
                     EntityState.Detached, 
+                    null,
                     new IPropertyChange[0]);
                 return change;
             }
@@ -201,6 +202,7 @@ namespace ChangeDetector
             EntityChange<TEntity> change = new EntityChange<TEntity>(
                 context.Instance,
                 getState(context.State, propertyChanges),
+                context.Data,
                 propertyChanges);
             return change;
         }
@@ -276,7 +278,7 @@ namespace ChangeDetector
             }
             return configuration.GetCollectionChanges(accessor, context.CollectionSnapshots, context.Instance, state);
         }
-
+        
         public void CommitChanges()
         {
             commitChanges(EntityState.Added | EntityState.Modified | EntityState.Removed);
@@ -342,6 +344,26 @@ namespace ChangeDetector
         {
             context.Snapshot = configuration.TakeSnapshot(context.Instance);
             context.CollectionSnapshots = configuration.TakeCollectionSnapshots(context.Instance);
+        }
+
+        public object GetData(TEntity entity)
+        {
+            Entity<TEntity> context;
+            if (!entityLookup.TryGetValue(entity, out context))
+            {
+                return null;
+            }
+            return context.Data;
+        }
+
+        public void SetData(TEntity entity, object data)
+        {
+            Entity<TEntity> context;
+            if (!entityLookup.TryGetValue(entity, out context))
+            {
+                return;
+            }
+            context.Data = data;
         }
     }
 }

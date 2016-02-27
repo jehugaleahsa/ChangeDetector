@@ -14,16 +14,20 @@ namespace ChangeDetector
         internal EntityChange(
             TEntity entity,
             EntityState state,
+            object data,
             IEnumerable<IPropertyChange> changes)
         {
             this.Entity = entity;
             this.State = state;
+            this.Data = data;
             this.changes = changes;
         }
 
         public TEntity Entity { get; private set; }
 
         public EntityState State { get; private set; }
+
+        public object Data { get; private set; }
 
         public IEnumerable<IPropertyChange> GetChanges()
         {
@@ -56,6 +60,7 @@ namespace ChangeDetector
             EntityChange<TDerived> change = new EntityChange<TDerived>(
                 Entity as TDerived,
                 State,
+                Data,
                 changes);
             return change;
         }

@@ -14,5 +14,7 @@ namespace ChangeDetector
         public Snapshot Snapshot { get; set; }
 
         public CollectionSnapshotLookup CollectionSnapshots { get; set; }
+
+        public object Data { get; set; }
     }
 }
