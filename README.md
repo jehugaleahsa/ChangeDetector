@@ -56,10 +56,10 @@ Most of the time, you will want to track the state of a single object throughout
     TestEntity entity = new TestEntity() { IntValue = 123 };
     tracker.Attach(entity);
     // ... some business logic here ...
-    EntityChange<TestEntity> changes = tracker.DetectChanges(entity);
+    IEntityChange<TestEntity> changes = tracker.DetectChanges(entity);
     tracker.CommitChanges();
     
-The `EntityChange` class gives a summary of what changed on the entity. It has the following members:
+The `IEntityChange` interface gives a summary of what changed on the entity. It has the following members:
 * Entity - The object that was being tracked
 * State - Says whether the object is `Unmodified`, `Modified`, `Added`, `Removed` or `Detached`.
 * GetChanges - Gets the individual properties that were changed.
@@ -67,7 +67,7 @@ The `EntityChange` class gives a summary of what changed on the entity. It has t
 * HasChange - Determines whether there was a change for a property.
 * As<TDerived> - Makes it easier to detect changes on sub-classes (see below)
 
-There are three overloads of `DetectChanges`. The first takes no arguments and returns an `EntityChange` for each entity that was `Modified`, `Added` or `Removed`. If you only want to get back entities with certain states or include `Unmodified` entities, you can use the second overload that accepts an `EntityState` flag enum. Finally, you can retrieve the state of a single entity using the third overload. In the case that the entity is not being tracked, its state will be `Detached`.
+There are three overloads of `DetectChanges`. The first takes no arguments and returns an `IEntityChange` for each entity that was `Modified`, `Added` or `Removed`. If you only want to get back entities with certain states or include `Unmodified` entities, you can use the second overload that accepts an `EntityState` flag enum. Finally, you can retrieve the state of a single entity using the third overload. In the case that the entity is not being tracked, its state will be `Detached`.
 
 Once you have finished processing the changes, you can commit the changes to the tracker, via `CommitChanges`. This will ensure the next time you call `DetectChanges` you will not get the same changes back again. `Modified` and `Added` entities will become `Unmodified`, and `Removed` entities will no longer be tracked.
 
@@ -104,7 +104,7 @@ If you need to detect whether a property changed for a particular derived instan
 The change detector is smart enough to handle `null`s on your behalf. If one of the entities is `null`, the property values of the other entity are compared to `null`. If both entities are `null`, they are considered the equal. Be aware that `null`s will not be passed to the formatter, so you can't customize their format. However, you can simply check the result for `null` and replace it with a placeholder string.
 
 ## Collection Detection
-There is also support for detecting changes between collections, via the `CollectionChangeDetector`. This class will take two collections (`ICollection<TElement>`) and see what elements are added or removed. You can pass an optional `IEqualityComparer<TElement>` to the constructor if the element type is not a simple type. `CollectionChangeDetector` has a  `GetChanges` method that returns an `ElementChangeCollection`, which allows you to see which elements were `Added` or `Removed`. There is an overload of the `GetChanges` method to explicitly search for `Added`, `Removed` or `Unmodified` elements.
+There is also support for detecting changes between collections, via the `CollectionChangeDetector`. This class will take two collections (`ICollection<TElement>`) and see what elements are added or removed. You can pass an optional `IEqualityComparer<TElement>` to the constructor if the element type is not a simple type. `CollectionChangeDetector` has a  `GetChanges` method that returns an `IElementChangeCollection`, which allows you to see which elements were `Added` or `Removed`. There is an overload of the `GetChanges` method to explicitly search for `Added`, `Removed` or `Unmodified` elements.
 
     CollectionChangeDetector<int> detector = new CollectionChangeDetector<int>();
     var changes = detector.GetChanges(new int[] { 1, 2, 3 }, new int[] { 2, 4 });
