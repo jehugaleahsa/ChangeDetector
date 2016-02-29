@@ -62,6 +62,7 @@ Most of the time, you will want to track the state of a single object throughout
 The `IEntityChange` interface gives a summary of what changed on the entity. It has the following members:
 * Entity - The object that was being tracked
 * State - Says whether the object is `Unmodified`, `Modified`, `Added`, `Removed` or `Detached`.
+* Data - Arbitrary data associated with the entity (see below).
 * GetChanges - Gets the individual properties that were changed.
 * GetChange - Gets the `IPropertyChange` for a property, or `null` if the property isn't changed or tracked.
 * HasChange - Determines whether there was a change for a property.
@@ -70,6 +71,9 @@ The `IEntityChange` interface gives a summary of what changed on the entity. It 
 There are three overloads of `DetectChanges`. The first takes no arguments and returns an `IEntityChange` for each entity that was `Modified`, `Added` or `Removed`. If you only want to get back entities with certain states or include `Unmodified` entities, you can use the second overload that accepts an `EntityState` flag enum. Finally, you can retrieve the state of a single entity using the third overload. In the case that the entity is not being tracked, its state will be `Detached`.
 
 Once you have finished processing the changes, you can commit the changes to the tracker, via `CommitChanges`. This will ensure the next time you call `DetectChanges` you will not get the same changes back again. `Modified` and `Added` entities will become `Unmodified`, and `Removed` entities will no longer be tracked.
+
+### Arbitrary Data
+Often, along with tracking changes, it is useful to associate an entity with some additional data. `EntityChangeTracker` supplies two simple methods `GetData` and `SetData` that will return and accept an `object`, respectively, for a given an entity. When retrieving data back using `GetData`, you will need to cast it back. Any data associated to an entity will also get returned when `DetectChanges` is called.
 
 ## Inheritance
 If you are dealing with a class hierarchy, you can specify how to detect changes whenever the entity is of a particular type, using the `When<TDerived>` method.
@@ -110,7 +114,10 @@ There is also support for detecting changes between collections, via the `Collec
     var changes = detector.GetChanges(new int[] { 1, 2, 3 }, new int[] { 2, 4 });
     // Removed: 1, 3. Added: 4.
 
-If you have an entity with a collection property, you can track how that collection changes throughout the lifetime of the entity. When initializing the `EntityConfiguration`, call `AddCollection` to register the collection. You can then pass the configuration to an `EntityChangeTracker` and it will automatically track the related collection with the entity. When you want to see what has changed, call `DetectCollectionChanges` on the tracker. `DetectCollectionChanges` accepts the entity and a delegate to specify which collection you're checking. You can optionally specify whether you are looking for `Added` or `Removed` elements. Just like with entities, calling `CommitChanges` will prevent the same changes from being returned for the collection.
+### Tracking Collection Changes 
+If you have an entity with a collection property, you can track how that collection changes throughout the lifetime of the entity, using the `EntityChangeTracker`. When initializing the `EntityConfiguration`, call `AddCollection` to register the collection. The `EntityChangeTracker` will automatically track the related collection along with the entity.
+
+Detecting changes for every collection in every entity could be very time consuming. You must request to see changes to an entity's collections, explicitly. To do this, call `DetectCollectionChanges` on the tracker. `DetectCollectionChanges` accepts the entity and a delegate to specify which collection you're checking. You can optionally specify whether you are looking for `Added`, `Removed` and/or `Unmodified` elements. Just like with entities, calling `CommitChanges` will prevent the same changes from being returned for the collection.
 
 ## License
 This is free and unencumbered software released into the public domain.
