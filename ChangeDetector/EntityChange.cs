@@ -23,12 +23,12 @@ namespace ChangeDetector
         IEntityChange<TDerived> As<TDerived>() where TDerived : class, TEntity;
     }
 
-    public class EntityChange<TEntity> : IEntityChange<TEntity>
+    internal class EntityChange<TEntity> : IEntityChange<TEntity>
         where TEntity : class
     {
         private readonly IEnumerable<IPropertyChange> changes;
 
-        internal EntityChange(
+        public EntityChange(
             TEntity entity,
             EntityState state,
             object data,
