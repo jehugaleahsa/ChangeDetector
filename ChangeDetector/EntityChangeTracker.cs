@@ -30,6 +30,11 @@ namespace ChangeDetector
             this.lookup = new Dictionary<TEntity, Entity<TEntity>>(comparer);
         }
 
+        public IEnumerable<TEntity> TrackedEntities
+        {
+            get { return lookup.Keys; }
+        }
+
         public bool IsTracking(TEntity entity)
         {
             if (entity == null)
