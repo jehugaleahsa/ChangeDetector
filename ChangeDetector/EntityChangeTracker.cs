@@ -5,7 +5,42 @@ using System.Linq.Expressions;
 
 namespace ChangeDetector
 {
-    public class EntityChangeTracker<TEntity>
+    public interface IEntityChangeTracker<TEntity>
+    {
+        IEnumerable<TEntity> TrackedEntities { get; }
+
+        bool IsTracking(TEntity entity);
+
+        void Attach(TEntity entity);
+
+        bool Detach(TEntity entity);
+
+        void Add(TEntity entity);
+
+        bool Remove(TEntity entity);
+
+        IEnumerable<IEntityChange<TEntity>> DetectChanges();
+
+        IEnumerable<IEntityChange<TEntity>> DetectChanges(EntityState state);
+
+        IEntityChange<TEntity> DetectChanges(TEntity entity);
+
+        ICollectionChange<TElement> DetectCollectionChanges<TElement>(TEntity entity, Expression<Func<TEntity, ICollection<TElement>>> accessor);
+
+        ICollectionChange<TElement> DetectCollectionChanges<TElement>(TEntity entity, Expression<Func<TEntity, ICollection<TElement>>> accessor, ElementState state);
+
+        void CommitChanges();
+
+        void CommitChanges(EntityState state);
+
+        void CommitChanges(TEntity entity);
+
+        object GetData(TEntity entity);
+
+        void SetData(TEntity entity, object data);
+    }
+
+    public class EntityChangeTracker<TEntity> : IEntityChangeTracker<TEntity>
         where TEntity : class
     {
         private readonly EntityConfiguration<TEntity> configuration;
@@ -144,29 +179,29 @@ namespace ChangeDetector
             return true;
         }
 
-        public IEnumerable<EntityChange<TEntity>> DetectChanges()
+        public IEnumerable<IEntityChange<TEntity>> DetectChanges()
         {
             return detectChanges(EntityState.Added | EntityState.Modified | EntityState.Removed);
         }
 
-        public IEnumerable<EntityChange<TEntity>> DetectChanges(EntityState state)
+        public IEnumerable<IEntityChange<TEntity>> DetectChanges(EntityState state)
         {
             return detectChanges(state);
         }
 
-        private IEnumerable<EntityChange<TEntity>> detectChanges(EntityState state)
+        private IEnumerable<IEntityChange<TEntity>> detectChanges(EntityState state)
         {
-            List<EntityChange<TEntity>> changes = new List<EntityChange<TEntity>>();
+            List<IEntityChange<TEntity>> changes = new List<IEntityChange<TEntity>>();
             foreach (Entity<TEntity> context in lookup.Values)
             {
                 if (context.State == EntityState.Added && state.HasFlag(EntityState.Added))
                 {
-                    EntityChange<TEntity> change = getEntityChange(context);
+                    IEntityChange<TEntity> change = getEntityChange(context);
                     changes.Add(change);
                 }
                 else if (context.State == EntityState.Unmodified && (state.HasFlag(EntityState.Modified) || state.HasFlag(EntityState.Unmodified)))
                 {
-                    EntityChange<TEntity> change = getEntityChange(context);
+                    IEntityChange<TEntity> change = getEntityChange(context);
                     if (change.GetChanges().Any())
                     {
                         if (state.HasFlag(EntityState.Modified))
@@ -181,14 +216,14 @@ namespace ChangeDetector
                 }
                 else if (context.State == EntityState.Removed && state.HasFlag(EntityState.Removed))
                 {
-                    EntityChange<TEntity> change = getEntityChange(context);
+                    IEntityChange<TEntity> change = getEntityChange(context);
                     changes.Add(change);
                 }
             }
             return changes;
         }
 
-        public EntityChange<TEntity> DetectChanges(TEntity entity)
+        public IEntityChange<TEntity> DetectChanges(TEntity entity)
         {
             if (entity == null)
             {
@@ -210,7 +245,7 @@ namespace ChangeDetector
             }
         }
 
-        private EntityChange<TEntity> getEntityChange(Entity<TEntity> context)
+        private IEntityChange<TEntity> getEntityChange(Entity<TEntity> context)
         {
             var propertyChanges = getPropertyChanges(context);
             EntityChange<TEntity> change = new EntityChange<TEntity>(

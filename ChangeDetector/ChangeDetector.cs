@@ -142,7 +142,7 @@ namespace ChangeDetector
             return snapshots;
         }
 
-        public CollectionChange<TElement> GetCollectionChanges<TElement>(PropertyInfo property, CollectionSnapshotLookup original, object updated, ElementState state)
+        public ICollectionChange<TElement> GetCollectionChanges<TElement>(PropertyInfo property, CollectionSnapshotLookup original, object updated, ElementState state)
         {
             ICollectionConfiguration configuration;
             if (!collections.TryGetValue(property, out configuration))

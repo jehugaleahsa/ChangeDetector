@@ -4,7 +4,14 @@ using System.Linq;
 
 namespace ChangeDetector
 {
-    public class CollectionChangeDetector<TElement>
+    public interface ICollectionChangeDetector<TElement>
+    {
+        IElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated);
+
+        IElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated, ElementState state);
+    }
+
+    public class CollectionChangeDetector<TElement> : ICollectionChangeDetector<TElement>
     {
         private readonly IEqualityComparer<TElement> comparer;
 
@@ -17,12 +24,12 @@ namespace ChangeDetector
             this.comparer = comparer;
         }
 
-        public ElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated)
+        public IElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated)
         {
             return GetChanges(original, updated, ElementState.Added | ElementState.Removed);
         }
 
-        public ElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated, ElementState state)
+        public IElementChangeCollection<TElement> GetChanges(ICollection<TElement> original, ICollection<TElement> updated, ElementState state)
         {
             HashSet<TElement> source = toHashSet(original);
             if (updated == null)
@@ -71,7 +78,7 @@ namespace ChangeDetector
             return set;
         }
 
-        private IEnumerable<ElementChange<TElement>> getElementChanges(HashSet<TElement> collection, ElementState filter, ElementState state)
+        private IEnumerable<IElementChange<TElement>> getElementChanges(HashSet<TElement> collection, ElementState filter, ElementState state)
         {
             if (!filter.HasFlag(state))
             {

@@ -9,17 +9,17 @@ namespace ChangeDetector
 
         string DisplayName { get; }
 
-        ElementChangeCollection<TElement> GetChanges();
+        IElementChangeCollection<TElement> GetChanges();
     }
 
     internal class CollectionChange<TElement> : ICollectionChange<TElement>
     {
-        private readonly ElementChangeCollection<TElement> changes;
+        private readonly IElementChangeCollection<TElement> changes;
 
         public CollectionChange(
             PropertyInfo property, 
             string displayName, 
-            ElementChangeCollection<TElement> changes)
+            IElementChangeCollection<TElement> changes)
         {
             this.Property = property;
             this.DisplayName = displayName;
@@ -30,7 +30,7 @@ namespace ChangeDetector
 
         public string DisplayName { get; private set; }
 
-        public ElementChangeCollection<TElement> GetChanges()
+        public IElementChangeCollection<TElement> GetChanges()
         {
             return changes;
         }

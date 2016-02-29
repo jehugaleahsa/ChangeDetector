@@ -142,7 +142,7 @@ namespace ChangeDetector
             return detector.TakeCollectionSnapshots(entity);
         }
 
-        internal CollectionChange<TElement> GetCollectionChanges<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, CollectionSnapshotLookup original, TEntity updated, ElementState state)
+        internal ICollectionChange<TElement> GetCollectionChanges<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, CollectionSnapshotLookup original, TEntity updated, ElementState state)
         {
             PropertyInfo property = ChangeDetector.GetProperty(accessor);
             return detector.GetCollectionChanges<TElement>(property, original, updated, state);

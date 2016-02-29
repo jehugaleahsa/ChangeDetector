@@ -5,18 +5,30 @@ using System.Linq;
 
 namespace ChangeDetector
 {
-    public class ElementChangeCollection<TElement> : IEnumerable<ElementChange<TElement>>
+    public interface IElementChangeCollection<TElement> : IEnumerable<IElementChange<TElement>>
     {
-        private Dictionary<TElement, ElementChange<TElement>> lookup;
+        int Count { get; }
 
-        internal ElementChangeCollection(IEnumerable<ElementChange<TElement>> changes, IEqualityComparer<TElement> comparer)
+        IElementChange<TElement> GetChange(TElement element);
+    }
+
+    internal class ElementChangeCollection<TElement> : IElementChangeCollection<TElement>
+    {
+        private Dictionary<TElement, IElementChange<TElement>> lookup;
+
+        internal ElementChangeCollection(IEnumerable<IElementChange<TElement>> changes, IEqualityComparer<TElement> comparer)
         {
             this.lookup = changes.ToDictionary(c => c.Item, comparer);
         }
 
-        public ElementChange<TElement> GetChange(TElement element)
+        public int Count
         {
-            ElementChange<TElement> change;
+            get { return lookup.Count; }
+        }
+
+        public IElementChange<TElement> GetChange(TElement element)
+        {
+            IElementChange<TElement> change;
             if (lookup.TryGetValue(element, out change))
             {
                 return change;
@@ -27,12 +39,7 @@ namespace ChangeDetector
             }
         }
 
-        public int Count
-        {
-            get { return lookup.Count; }
-        }
-
-        public IEnumerator<ElementChange<TElement>> GetEnumerator()
+        public IEnumerator<IElementChange<TElement>> GetEnumerator()
         {
             return lookup.Values.GetEnumerator();
         }

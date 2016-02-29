@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace ChangeDetector
 {
-    public interface ICollectionConfiguration
+    internal interface ICollectionConfiguration
     {
         PropertyInfo Property { get; }
 

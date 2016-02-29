@@ -6,7 +6,24 @@ using System.Reflection;
 
 namespace ChangeDetector
 {
-    public class EntityChange<TEntity>
+    public interface IEntityChange<TEntity>
+    {
+        TEntity Entity { get; }
+
+        EntityState State { get; }
+
+        object Data { get; }
+
+        IEnumerable<IPropertyChange> GetChanges();
+
+        IPropertyChange GetChange<TProp>(Expression<Func<TEntity, TProp>> accessor);
+
+        bool HasChange<TProp>(Expression<Func<TEntity, TProp>> accessor);
+
+        IEntityChange<TDerived> As<TDerived>() where TDerived : class, TEntity;
+    }
+
+    public class EntityChange<TEntity> : IEntityChange<TEntity>
         where TEntity : class
     {
         private readonly IEnumerable<IPropertyChange> changes;
@@ -54,7 +71,7 @@ namespace ChangeDetector
             return changes.Where(c => c.Property == property).SingleOrDefault();
         }
 
-        public EntityChange<TDerived> As<TDerived>()
+        public IEntityChange<TDerived> As<TDerived>()
             where TDerived : class, TEntity
         {
             EntityChange<TDerived> change = new EntityChange<TDerived>(
