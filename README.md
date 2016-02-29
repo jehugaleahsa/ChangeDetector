@@ -117,7 +117,7 @@ There is also support for detecting changes between collections, via the `Collec
 ### Tracking Collection Changes 
 If you have an entity with a collection property, you can track how that collection changes throughout the lifetime of the entity, using the `EntityChangeTracker`. When initializing the `EntityConfiguration`, call `AddCollection` to register the collection. The `EntityChangeTracker` will automatically track the related collection along with the entity. 
 
-*Note* - The state of an entity is not affected by its collections. In other words, an entity will remain `Unmodified` even if one of its collections is modified.
+**Note** - *The state of an entity is not affected by its collections. In other words, an entity will remain `Unmodified` even if one of its collections is modified.*
 
 Detecting changes for every collection in every entity could be very time consuming. You must request to see changes to an entity's collections, explicitly. To do this, call `DetectCollectionChanges` on the tracker. `DetectCollectionChanges` accepts the entity and a delegate to specify which collection you're checking. You can optionally specify whether you are looking for `Added`, `Removed` and/or `Unmodified` elements. Just like with entities, calling `CommitChanges` will prevent the same changes from being returned for the collection.
 
