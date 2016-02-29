@@ -9,7 +9,7 @@ namespace ChangeDetector
         where TEntity : class
     {
         private readonly EntityConfiguration<TEntity> configuration;
-        private readonly Dictionary<TEntity, Entity<TEntity>> entityLookup;
+        private readonly Dictionary<TEntity, Entity<TEntity>> lookup;
 
         public EntityChangeTracker(EntityConfiguration<TEntity> configuration)
             : this(configuration, null)
@@ -27,7 +27,16 @@ namespace ChangeDetector
                 comparer = EqualityComparer<TEntity>.Default;
             }
             this.configuration = configuration;
-            this.entityLookup = new Dictionary<TEntity, Entity<TEntity>>(comparer);
+            this.lookup = new Dictionary<TEntity, Entity<TEntity>>(comparer);
+        }
+
+        public bool IsTracking(TEntity entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException("entity");
+            }
+            return lookup.ContainsKey(entity);
         }
 
         // Added -> Unmodified
@@ -41,7 +50,7 @@ namespace ChangeDetector
                 throw new ArgumentNullException("entity");
             }
             Entity<TEntity> context;
-            if (entityLookup.TryGetValue(entity, out context))
+            if (lookup.TryGetValue(entity, out context))
             {
                 if (context.State == EntityState.Added)
                 {
@@ -68,7 +77,7 @@ namespace ChangeDetector
             {
                 throw new ArgumentNullException("entity");
             }
-            return entityLookup.Remove(entity);
+            return lookup.Remove(entity);
         }
 
         // Added -> Added
@@ -82,7 +91,7 @@ namespace ChangeDetector
                 throw new ArgumentNullException("entity");
             }
             Entity<TEntity> context;
-            if (entityLookup.TryGetValue(entity, out context))
+            if (lookup.TryGetValue(entity, out context))
             {
                 if (context.State == EntityState.Removed)
                 {
@@ -101,7 +110,7 @@ namespace ChangeDetector
             context.Instance = entity;
             context.State = state;
             refreshSnapshots(context);
-            entityLookup.Add(entity, context);
+            lookup.Add(entity, context);
         }
 
         // Added -> Detached
@@ -115,13 +124,13 @@ namespace ChangeDetector
                 throw new ArgumentNullException("entity");
             }
             Entity<TEntity> context;
-            if (!entityLookup.TryGetValue(entity, out context))
+            if (!lookup.TryGetValue(entity, out context))
             {
                 return false;
             }
             if (context.State == EntityState.Added)
             {
-                return entityLookup.Remove(context.Instance);
+                return lookup.Remove(context.Instance);
             }
             if (context.State == EntityState.Unmodified)
             {
@@ -143,7 +152,7 @@ namespace ChangeDetector
         private IEnumerable<EntityChange<TEntity>> detectChanges(EntityState state)
         {
             List<EntityChange<TEntity>> changes = new List<EntityChange<TEntity>>();
-            foreach (Entity<TEntity> context in entityLookup.Values)
+            foreach (Entity<TEntity> context in lookup.Values)
             {
                 if (context.State == EntityState.Added && state.HasFlag(EntityState.Added))
                 {
@@ -181,7 +190,7 @@ namespace ChangeDetector
                 throw new ArgumentNullException("entity");
             }
             Entity<TEntity> context;
-            if (entityLookup.TryGetValue(entity, out context))
+            if (lookup.TryGetValue(entity, out context))
             {
                 return getEntityChange(context);
             }
@@ -261,7 +270,7 @@ namespace ChangeDetector
         public ICollectionChange<TElement> DetectCollectionChanges<TElement>(TEntity entity, Expression<Func<TEntity, ICollection<TElement>>> accessor)
         {
             Entity<TEntity> context;
-            if (!entityLookup.TryGetValue(entity, out context))
+            if (!lookup.TryGetValue(entity, out context))
             {
                 return null;
             }
@@ -272,7 +281,7 @@ namespace ChangeDetector
         public ICollectionChange<TElement> DetectCollectionChanges<TElement>(TEntity entity, Expression<Func<TEntity, ICollection<TElement>>> accessor, ElementState state)
         {
             Entity<TEntity> context;
-            if (!entityLookup.TryGetValue(entity, out context))
+            if (!lookup.TryGetValue(entity, out context))
             {
                 return null;
             }
@@ -291,8 +300,8 @@ namespace ChangeDetector
 
         private void commitChanges(EntityState state)
         {
-            HashSet<TEntity> removals = new HashSet<TEntity>(entityLookup.Comparer);
-            foreach (Entity<TEntity> context in entityLookup.Values)
+            HashSet<TEntity> removals = new HashSet<TEntity>(lookup.Comparer);
+            foreach (Entity<TEntity> context in lookup.Values)
             {
                 if (context.State == EntityState.Added && state.HasFlag(EntityState.Added))
                 {
@@ -310,7 +319,7 @@ namespace ChangeDetector
             }
             foreach (TEntity entity in removals)
             {
-                entityLookup.Remove(entity);
+                lookup.Remove(entity);
             }
         }
 
@@ -321,7 +330,7 @@ namespace ChangeDetector
                 throw new ArgumentNullException("entity");
             }
             Entity<TEntity> context;
-            if (!entityLookup.TryGetValue(entity, out context))
+            if (!lookup.TryGetValue(entity, out context))
             {
                 return;
             }
@@ -336,7 +345,7 @@ namespace ChangeDetector
             }
             else if (context.State == EntityState.Removed)
             {
-                entityLookup.Remove(entity);
+                lookup.Remove(entity);
             }
         }
 
@@ -349,7 +358,7 @@ namespace ChangeDetector
         public object GetData(TEntity entity)
         {
             Entity<TEntity> context;
-            if (!entityLookup.TryGetValue(entity, out context))
+            if (!lookup.TryGetValue(entity, out context))
             {
                 return null;
             }
@@ -359,7 +368,7 @@ namespace ChangeDetector
         public void SetData(TEntity entity, object data)
         {
             Entity<TEntity> context;
-            if (!entityLookup.TryGetValue(entity, out context))
+            if (!lookup.TryGetValue(entity, out context))
             {
                 return;
             }
