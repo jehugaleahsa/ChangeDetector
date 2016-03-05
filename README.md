@@ -73,7 +73,7 @@ There are three overloads of `DetectChanges`. The first takes no arguments and r
 Once you have finished processing the changes, you can commit the changes to the tracker, via `CommitChanges`. This will ensure the next time you call `DetectChanges` you will not get the same changes back again. `Modified` and `Added` entities will become `Unmodified`, and `Removed` entities will no longer be tracked.
 
 ### Arbitrary Data
-Often, along with tracking changes, it is useful to associate an entity with some additional data. `EntityChangeTracker` supplies two simple methods `GetData` and `SetData` that will return and accept an `object`, respectively, for a given an entity. When retrieving data back using `GetData`, you will need to cast it back. Any data associated to an entity will also get returned when `DetectChanges` is called.
+Often, along with tracking changes, it is useful to associate an entity with some additional data. `EntityChangeTracker` supplies two simple methods `GetData` and `SetData` that will return and accept an `object`, respectively, for a given entity. When retrieving data back using `GetData`, you will need to cast it back. Any data associated to an entity will also get returned when `DetectChanges` is called.
 
 ## Inheritance
 If you are dealing with a class hierarchy, you can specify how to detect changes whenever the entity is of a particular type, using the `When<TDerived>` method.
@@ -98,11 +98,11 @@ You can chain as many properties after calling `When` as you need.
 
 If you need to detect whether a property changed for a particular derived instance, you can use the `As<Derived>` method. This will expose two overloads of the `HasChange` method, either taking two base class objects or two derived class objects. In the overload accepting the base class, `HasChange` will return `false` if either object is not an instance of the derived class.
 
-            var detector = new TestEntityChangeDetector();
-            TestEntity original = new DerivedA() { A1 = "Hello" };
-            TestEntity updated = new DerivedA() { A1 = "Goodbye" };
+    var detector = new TestEntityChangeDetector();
+    TestEntity original = new DerivedA() { A1 = "Hello" };
+    TestEntity updated = new DerivedA() { A1 = "Goodbye" };
             
-            bool hasChange = detector.As<DerivedA>().HasChange(x => x.A1, original, updated);
+    bool hasChange = detector.As<DerivedA>().HasChange(x => x.A1, original, updated);
 
 ## Nulls
 The change detector is smart enough to handle `null`s on your behalf. If one of the entities is `null`, the property values of the other entity are compared to `null`. If both entities are `null`, they are considered the equal. Be aware that `null`s will not be passed to the formatter, so you can't customize their format. However, you can simply check the result for `null` and replace it with a placeholder string.
