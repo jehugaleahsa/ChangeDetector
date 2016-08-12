@@ -33,7 +33,25 @@ namespace ChangeDetector
             {
                 return null;
             }
-            return prop.Value.ToString("N");
+            return prop.Value.ToString("N0");
+        }
+
+        public static string FormatId(Int32? prop)
+        {
+            if (prop == null)
+            {
+                return null;
+            }
+            return prop.Value.ToString("D");
+        }
+
+        public static string FormatId(Int64? prop)
+        {
+            if (prop == null)
+            {
+                return null;
+            }
+            return prop.Value.ToString("D");
         }
 
         public static string FormatBoolean(bool? prop)
