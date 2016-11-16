@@ -53,7 +53,7 @@ namespace ChangeDetector
             var propertyInfo = ChangeDetector.GetProperty<TEntity, TProp>(accessor);
             detector.Add(propertyInfo, displayName, formatter, comparer);
             return this;
-        } 
+        }
 
         protected EntityConfiguration<TEntity> AddCollection<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, IEqualityComparer<TElement> comparer = null)
         {
@@ -120,6 +120,11 @@ namespace ChangeDetector
         }
 
         IDerivedEntityConfiguration<TEntity> IDerivedEntityConfiguration<TEntity>.Add<TProp>(Expression<Func<TEntity, TProp>> accessor, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+        {
+            return Add(accessor, displayName, formatter, comparer);
+        }
+
+        IDerivedEntityConfiguration<TEntity> IDerivedEntityConfiguration<TEntity>.Add<TProp>(Expression<Func<TEntity, TProp>> accessor, Func<TEntity, string> displayName, Func<TEntity, TProp, string> formatter, IEqualityComparer<TProp> comparer)
         {
             return Add(accessor, displayName, formatter, comparer);
         }

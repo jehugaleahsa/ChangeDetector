@@ -41,6 +41,7 @@ namespace ChangeDetector
         }
 
         public void Add<TEntity, TProp>(PropertyInfo propertyInfo, Func<TEntity, string> displayName, Func<TEntity, TProp, string> formatter, IEqualityComparer<TProp> comparer)
+            where TEntity : class
         {
             if (displayName == null)
             {
@@ -56,8 +57,8 @@ namespace ChangeDetector
             }
             var property = new PropertyConfiguration<TProp>(
                 propertyInfo, 
-                o => displayName((TEntity)o), 
-                (o, p) => formatter((TEntity)o, p), 
+                o => displayName(o as TEntity), 
+                (o, p) => formatter(o as TEntity, p), 
                 comparer);
             properties[propertyInfo] = property;
         }

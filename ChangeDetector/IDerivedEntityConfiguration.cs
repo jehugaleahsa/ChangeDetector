@@ -15,6 +15,8 @@ namespace ChangeDetector
 
         IDerivedEntityConfiguration<TDerived> Add<TProp>(Expression<Func<TDerived, TProp>> accessor, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer = null);
 
+        IDerivedEntityConfiguration<TDerived> Add<TProp>(Expression<Func<TDerived, TProp>> accessor, Func<TDerived, string> displayName, Func<TDerived, TProp, string> formatter, IEqualityComparer<TProp> comparer = null);
+
         IDerivedEntityConfiguration<TDerived> AddCollection<TElement>(Expression<Func<TDerived, ICollection<TElement>>> accessor, IEqualityComparer<TElement> comparer = null);
 
         IDerivedEntityConfiguration<TDerived> AddCollection<TElement>(Expression<Func<TDerived, ICollection<TElement>>> accessor, string displayName, IEqualityComparer<TElement> comparer = null);
