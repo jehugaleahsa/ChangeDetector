@@ -8,7 +8,7 @@ namespace ChangeDetector
     {
         PropertyInfo Property { get; }
 
-        string DisplayName { get; }
+        Func<object, string> DisplayName { get; }
 
         Snapshot TakeSingletonSnapshot(object entity);
 
@@ -21,7 +21,7 @@ namespace ChangeDetector
 
     internal abstract class PropertyConfiguration : IPropertyConfiguration
     {
-        public PropertyConfiguration(PropertyInfo propertyInfo, string displayName)
+        public PropertyConfiguration(PropertyInfo propertyInfo, Func<object, string> displayName)
         {
             Property = propertyInfo;
             DisplayName = displayName;
@@ -29,7 +29,7 @@ namespace ChangeDetector
 
         public PropertyInfo Property { get; private set; }
 
-        public string DisplayName { get; private set; }
+        public Func<object, string> DisplayName { get; private set; }
 
         public Snapshot TakeSingletonSnapshot(object entity)
         {
@@ -37,7 +37,7 @@ namespace ChangeDetector
             {
                 return Snapshot.Null;
             }
-            var snapshot = new Snapshot();
+            var snapshot = new Snapshot(entity);
             if (IsValueSource(entity))
             {
                 snapshot.Add(Property, GetValue(entity));
@@ -60,14 +60,14 @@ namespace ChangeDetector
 
     internal class PropertyConfiguration<TProp> : PropertyConfiguration
     {
-        public PropertyConfiguration(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+        public PropertyConfiguration(PropertyInfo propertyInfo, Func<object, string> displayName, Func<object, TProp, string> formatter, IEqualityComparer<TProp> comparer)
             : base(propertyInfo, displayName)
         {
             Formatter = formatter;
             Comparer = comparer;
         }
 
-        public Func<TProp, string> Formatter { get; private set; }
+        public Func<object, TProp, string> Formatter { get; private set; }
 
         public IEqualityComparer<TProp> Comparer { get; private set; }
 

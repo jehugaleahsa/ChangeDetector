@@ -40,21 +40,25 @@ namespace ChangeDetector
             return property;
         }
 
-        public void Add<TProp>(PropertyInfo propertyInfo, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer)
+        public void Add<TEntity, TProp>(PropertyInfo propertyInfo, Func<TEntity, string> displayName, Func<TEntity, TProp, string> formatter, IEqualityComparer<TProp> comparer)
         {
-            if (String.IsNullOrWhiteSpace(displayName))
+            if (displayName == null)
             {
-                displayName = propertyInfo.Name;
+                displayName = e => propertyInfo.Name;
             }
             if (formatter == null)
             {
-                formatter = p => p == null ? null : p.ToString();
+                formatter = (e, p) => p == null ? null : p.ToString();
             }
             if (comparer == null)
             {
                 comparer = EqualityComparer<TProp>.Default;
             }
-            var property = new PropertyConfiguration<TProp>(propertyInfo, displayName, formatter, comparer);
+            var property = new PropertyConfiguration<TProp>(
+                propertyInfo, 
+                o => displayName((TEntity)o), 
+                (o, p) => formatter((TEntity)o, p), 
+                comparer);
             properties[propertyInfo] = property;
         }
 
@@ -107,7 +111,7 @@ namespace ChangeDetector
             {
                 return Snapshot.Null;
             }
-            Snapshot snapshot = new Snapshot();
+            Snapshot snapshot = new Snapshot(entity);
             foreach (var configuration in properties.Values)
             {
                 if (configuration.IsValueSource(entity))

@@ -311,6 +311,29 @@ namespace ChangeDetector.Tests
 
         [TestMethod]
         [TestCategory("Unit Test")]
+        public void ShouldDetectChangeToInheritedProperty()
+        {
+            var detector = new DirectDerivedChangeDetector();
+            DerivedEntity original = new DerivedEntity() { BooleanValue = false };
+            DerivedEntity updated = new DerivedEntity() { BooleanValue = true };
+
+            var changes = detector.GetChanges(original, updated);
+
+            Assert.AreEqual(1, changes.Count(), "The wrong number of changes were detected.");
+            IPropertyChange change = changes.Single();
+            Assert.AreEqual("BooleanValue", change.DisplayName, "The wrong property was recorded.");
+        }
+
+        public class DirectDerivedChangeDetector : EntityConfiguration<DerivedEntity>
+        {
+            public DirectDerivedChangeDetector()
+            {
+                Add(x => x.BooleanValue);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
         public void ShouldIncludeChangeToDoubleDerivedProperty()
         {
             var detector = new DoubleDerivedChangeDetector();
@@ -339,6 +362,70 @@ namespace ChangeDetector.Tests
             {
                 When<DoubleDerivedEntity>()
                     .Add(x => x.DoubleDerivedValue, DoubleDerivedDescription, Formatters.FormatString);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit Test")]
+        public void ShouldDetectAllDetailedChanges()
+        {
+            var detector = new TestDetailedEntityChangeDetector();
+            TestEntity original = new TestEntity()
+            {
+                BooleanValue = false,
+                DateTimeValue = new DateTime(2015, 07, 29),
+                GuidValue = Guid.NewGuid(),
+                IntValue = 123,
+                MoneyValue = 12.34m,
+                PercentValue = 12.5m,
+                StringValue = "Hello"
+            };
+            TestEntity updated = new TestEntity()
+            {
+                BooleanValue = true,
+                DateTimeValue = new DateTime(2015, 07, 30),
+                GuidValue = Guid.NewGuid(),
+                IntValue = 234,
+                MoneyValue = 10m,
+                PercentValue = 15m,
+                StringValue = "Goodbye"
+            };
+
+            Assert.IsTrue(detector.HasChange(e => e.BooleanValue, original, updated), "Boolean value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.DateTimeValue, original, updated), "DateTime value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.GuidValue, original, updated), "Guid value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.IntValue, original, updated), "Int value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.MoneyValue, original, updated), "Money value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.PercentValue, original, updated), "Percent value should be changed.");
+            Assert.IsTrue(detector.HasChange(e => e.StringValue, original, updated), "String value should be changed.");
+
+            var changes = detector.GetChanges(original, updated);
+            Assert.AreEqual(7, changes.Count(), "The wrong number of changes were detected.");
+            foreach (var change in changes)
+            {
+                string displayName = change.DisplayName;
+            }
+        }
+
+        public class TestDetailedEntityChangeDetector : EntityConfiguration<TestEntity>
+        {
+            public const string StringDescription = "String";
+            public const string DateTimeDescription = "DateTime";
+            public const string MoneyDescription = "Money";
+            public const string IntDescription = "Int";
+            public const string BooleanDescription = "Boolean";
+            public const string PercentDescription = "Percent";
+            public const string GuidDescription = "Guid";
+
+            public TestDetailedEntityChangeDetector()
+            {
+                Add(e => e.StringValue, e => StringDescription + e.StringValue, (e, p) => e.GetType() + p);
+                Add(e => e.DateTimeValue, e => DateTimeDescription + e.DateTimeValue, (e, p) => e.GetType() + p.ToString());
+                Add(e => e.MoneyValue, e => MoneyDescription + e.MoneyValue, (e, p) => e.GetType() + p.ToString());
+                Add(e => e.IntValue, e => IntDescription + e.IntValue, (e, p) => e.GetType() + p.ToString());
+                Add(e => e.BooleanValue, e => BooleanDescription + e.BooleanValue, (e, p) => e.GetType() + p.ToString());
+                Add(e => e.PercentValue, e => PercentDescription + e.PercentValue, (e, p) => e.GetType() + p.ToString());
+                Add(e => e.GuidValue, e => GuidDescription + e.GuidValue, (e, p) => e.GetType() + p.ToString());
             }
         }
     }

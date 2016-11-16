@@ -23,30 +23,37 @@ namespace ChangeDetector
         protected EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, IEqualityComparer<TProp> comparer = null)
         {
             var propertyInfo = ChangeDetector.GetProperty<TEntity, TProp>(accessor);
-            detector.Add(propertyInfo, null, null, comparer);
+            detector.Add<TEntity, TProp>(propertyInfo, null, null, comparer);
             return this;
         }
 
         protected EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, string displayName, IEqualityComparer<TProp> comparer = null)
         {
             var propertyInfo = ChangeDetector.GetProperty<TEntity, TProp>(accessor);
-            detector.Add(propertyInfo, displayName, null, comparer);
+            detector.Add<TEntity, TProp>(propertyInfo, e => displayName, null, comparer);
             return this;
         }
 
         protected EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer = null)
         {
             var propertyInfo = ChangeDetector.GetProperty<TEntity, TProp>(accessor);
-            detector.Add(propertyInfo, null, formatter, comparer);
+            detector.Add<TEntity, TProp>(propertyInfo, null, (e, p) => formatter(p), comparer);
             return this;
         }
 
         protected EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, string displayName, Func<TProp, string> formatter, IEqualityComparer<TProp> comparer = null)
         {
             var propertyInfo = ChangeDetector.GetProperty<TEntity, TProp>(accessor);
-            detector.Add(propertyInfo, displayName, formatter, comparer);
+            detector.Add<TEntity, TProp>(propertyInfo, e => displayName, (e, p) => formatter(p), comparer);
             return this;
         }
+
+        protected EntityConfiguration<TEntity> Add<TProp>(Expression<Func<TEntity, TProp>> accessor, Func<TEntity, string> displayName, Func<TEntity, TProp, string> formatter, IEqualityComparer<TProp> comparer = null)
+        {
+            var propertyInfo = ChangeDetector.GetProperty<TEntity, TProp>(accessor);
+            detector.Add(propertyInfo, displayName, formatter, comparer);
+            return this;
+        } 
 
         protected EntityConfiguration<TEntity> AddCollection<TElement>(Expression<Func<TEntity, ICollection<TElement>>> accessor, IEqualityComparer<TElement> comparer = null)
         {

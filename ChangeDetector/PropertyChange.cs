@@ -39,7 +39,7 @@ namespace ChangeDetector
 
         public string DisplayName
         {
-            get { return configuration.DisplayName; }
+            get { return configuration.DisplayName(updated?.Snapshot?.Entity); }
         }
 
         public object OriginalValue
@@ -64,7 +64,8 @@ namespace ChangeDetector
 
         private string formatValue(SnapshotValue value)
         {
-            return value.HasValue() ? configuration.Formatter(value.GetValue<TProp>()) : null;
+            object entity = updated?.Snapshot?.Entity;
+            return value.HasValue() ? configuration.Formatter(entity, value.GetValue<TProp>()) : null;
         }
     }
 }
