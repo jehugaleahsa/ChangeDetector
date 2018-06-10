@@ -33,7 +33,7 @@ namespace ChangeDetector
             {
                 throw new ArgumentException("The expression must refer to a property.", "accessor");
             }
-            if (!property.DeclaringType.IsAssignableFrom(typeof(TEntity)))
+            if (!property.DeclaringType.GetTypeInfo().IsAssignableFrom(typeof(TEntity).GetTypeInfo()))
             {
                 throw new ArgumentException("The expression must refer to a property of the entity.", "accessor");
             }

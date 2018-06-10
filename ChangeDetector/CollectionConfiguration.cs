@@ -39,7 +39,7 @@ namespace ChangeDetector
 
         public bool IsValueSource(object entity)
         {
-            return entity != null && Property.DeclaringType.IsAssignableFrom(entity.GetType());
+            return entity != null && Property.DeclaringType.GetTypeInfo().IsAssignableFrom(entity.GetType().GetTypeInfo());
         }
 
         public ICollection<TElement> GetCollection(object entity)
